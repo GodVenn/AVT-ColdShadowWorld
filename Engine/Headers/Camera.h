@@ -12,6 +12,10 @@ namespace engine
 		Camera(const Vec3& eye, const Vec3& center, const Vec3& up, const GLuint bindingPoint);
 		~Camera();
 
+		Vec3 eye;
+		Vec3 center;
+		Vec3 up;
+
 		void createUBO(const GLuint UBO);
 		void draw();
 		void destroyUBO();
@@ -19,7 +23,7 @@ namespace engine
 		void setOrthograpicProjectionMatrix(const float left, const float right, const float bottom, const float top, const float near, const float far);
 		void setPerspectiveProjectionMatrix(const float fovy, const float ratio, const float near, const float far);
 
-		inline const Mat4 getViewMatrix() { return viewMatrix; }
+		const Mat4 getViewMatrix();
 		inline const Mat4 getProjMatrix() { return projMatrix; }
 
 	private:
@@ -27,5 +31,8 @@ namespace engine
 		Mat4 projMatrix;
 		GLuint bindingPoint, VboId;
 		bool isUBO;
+		Vec3 _previousEye;
+		Vec3 _previousCenter;
+		Vec3 _previousUp;
 	};
 }

@@ -173,7 +173,7 @@ namespace engine
 		return (this->x * other.x + this->y * other.y + this->z * other.z);
 	}
 
-	const Vec3 Vec3::crossProduct(const Vec3& other)
+	const Vec3 Vec3::crossProduct(const Vec3& other) const
 	{
 		float x = (this->y * other.z) - (this->z * other.y);
 		float y = (this->z * other.x) - (this->x * other.z);

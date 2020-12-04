@@ -57,7 +57,7 @@ namespace engine
 		friend const Vec3 normalize(const Vec3& vector);
 
 		const float dotProduct(const Vec3& other);
-		const Vec3 crossProduct(const Vec3& other);
+		const Vec3 crossProduct(const Vec3& other) const;
 
 		friend const Vec3 operator + (const Vec3& left, const Vec3& right);
 		friend const Vec3 operator - (const Vec3& left, const Vec3& right);

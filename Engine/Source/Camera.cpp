@@ -8,26 +8,42 @@ namespace engine
 		isUBO = false;
 		viewMatrix = projMatrix = Mat4();
 		VboId = bindingPoint = 0;
+		eye = Vec3(0, 0, 1);
+		up = Vec3(0, 1, 0);
+		center = Vec3(0, 0, 0);
+		_previousEye = _previousCenter = _previousUp = Vec3();
 	}
 
 	Camera::Camera(const Vec3& eye, const Vec3& center, const Vec3& up)
 	{
+		this->eye = eye;
+		this->up = up;
+		this->center = center;
 		isUBO = false;
 		this->viewMatrix = MatFactory::createViewMatrix(eye, center, up);
 		VboId = bindingPoint = 0;
+		_previousEye = _previousCenter = _previousUp = Vec3();
 	}
 
 	Camera::Camera(const GLuint bindingPoint)
 	{
+		eye = Vec3(0, 0, 1);
+		up = Vec3(0, 1, 0);
+		center = Vec3(0, 0, 0);
 		isUBO = true;
 		createUBO(bindingPoint);
+		_previousEye = _previousCenter = _previousUp = Vec3();
 	}
 
 	Camera::Camera(const Vec3& eye, const Vec3& center, const Vec3& up, const GLuint bindingPoint)
 	{
+		this->eye = eye;
+		this->up = up;
+		this->center = center;
 		isUBO = true;
 		this->viewMatrix = MatFactory::createViewMatrix(eye, center, up);
 		createUBO(bindingPoint);
+		_previousEye = _previousCenter = _previousUp = Vec3();
 	}
 
 	Camera::~Camera()
@@ -83,6 +99,18 @@ namespace engine
 	void Camera::setPerspectiveProjectionMatrix(const float fovy, const float ratio, const float near, const float far)
 	{
 		this->projMatrix = MatFactory::createPerspectiveProjectionMatrix(fovy, ratio, near, far);
+	}
+
+	const Mat4 Camera::getViewMatrix()
+	{
+		if (_previousEye != eye || _previousCenter != center || _previousUp != up)
+		{
+			_previousCenter = center;
+			_previousEye = eye;
+			_previousUp = up;
+			viewMatrix = MatFactory::createViewMatrix(eye, center, normalize(up));
+		}
+		return viewMatrix;
 	}
 
 
