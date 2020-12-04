@@ -5,6 +5,9 @@
 
 namespace engine 
 {
+	/// <summary>
+	/// Implements a flying camera.
+	/// </summary>
 	class CameraController {
 	public:
 		float sensitivity = 0.1f;
