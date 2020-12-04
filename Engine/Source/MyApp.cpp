@@ -255,25 +255,26 @@ void MyApp::key_callback(GLFWwindow* win, int key, int scancode, int action, int
 }
 
 /////////////////////////////////////////////////////////////////////// SHADERs
+const std::string shaderFolder = "Shaders\\";
 void MyApp::createShaderPrograms()
 {
 	ShaderProgram* penrose = new ShaderProgram();
-	penrose->load("cube_vs.glsl", "cube_fs.glsl");
+	penrose->addShader(shaderFolder + "cube_vs.glsl",GL_VERTEX_SHADER);
+	penrose->addShader(shaderFolder + "cube_fs.glsl", GL_FRAGMENT_SHADER);
 	penrose->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
 	penrose->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
 	penrose->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
-	penrose->link();
 	penrose->addUniform(engine::MODEL_MATRIX);
 	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	penrose->create();
 	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
 
 	ShaderProgram* frame = new ShaderProgram();
-	frame->load("frame_vs.glsl", "frame_fs.glsl");
+	frame->addShader(shaderFolder + "frame_vs.glsl", GL_VERTEX_SHADER);
+	frame->addShader(shaderFolder + "frame_fs.glsl", GL_FRAGMENT_SHADER);
 	frame->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
 	frame->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
 	frame->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
-	frame->link();
 	frame->addUniform(engine::MODEL_MATRIX);
 	frame->addUniform("u_Color");
 	frame->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
@@ -281,11 +282,11 @@ void MyApp::createShaderPrograms()
 	ShaderProgramManager::getInstance()->add("Frame", frame);
 
 	ShaderProgram* frameBackground = new ShaderProgram();
-	frameBackground->load("frame_vs.glsl", "frame_fs.glsl");
+	frameBackground->addShader(shaderFolder + "frame_vs.glsl", GL_VERTEX_SHADER);
+	frameBackground->addShader(shaderFolder + "frame_fs.glsl", GL_FRAGMENT_SHADER);
 	frameBackground->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
 	frameBackground->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
 	frameBackground->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
-	frameBackground->link();
 	frameBackground->addUniform(engine::MODEL_MATRIX);
 	frameBackground->addUniform("u_Color");
 	frameBackground->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
