@@ -1,5 +1,6 @@
-bin/
+*bin/
 
 # Visual Studio cache directory
-.vs/
-Intermediate/
+*.vs/
+*Intermediate/
+*.vcxproj.filters
