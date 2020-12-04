@@ -255,9 +255,10 @@ void MyApp::key_callback(GLFWwindow* win, int key, int scancode, int action, int
 }
 
 /////////////////////////////////////////////////////////////////////// SHADERs
-const std::string shaderFolder = "Shaders\\";
 void MyApp::createShaderPrograms()
 {
+	const std::string shaderFolder = "Shaders\\";
+
 	ShaderProgram* penrose = new ShaderProgram();
 	penrose->addShader(shaderFolder + "cube_vs.glsl",GL_VERTEX_SHADER);
 	penrose->addShader(shaderFolder + "cube_fs.glsl", GL_FRAGMENT_SHADER);

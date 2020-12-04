@@ -36,18 +36,38 @@ namespace engine
 		this->_attributes.insert(std::make_pair(attribName, attribPos));
 	}
 
+	void ShaderProgram::addUniform(const std::string& name)
+	{
+		this->_uniformsNames.push_back(name);
+	}
+
 	void ShaderProgram::addUniformBlock(const std::string& name, const GLuint UBO_BP)
 	{	
 		this->_uniformBlocks.insert(std::make_pair(name, UBO_BP));
 	}
 
-	void ShaderProgram::addUniform(const std::string& name)
-	{
-		this->_uniforms.push_back(name);
-	}
-
 	GLuint ShaderProgram::getUniformLocation(const std::string& name)
 	{
+		if (_uniforms.find(name) != _uniforms.end())
+		{
+			return _uniforms[name];
+		}
+
+		GLuint location = glGetUniformLocation(_programId, name.c_str());
+		if (location == -1) 
+		{
+			std::cerr << "Warning! Uniform " << name << " doesn't exits" << std::endl;
+		}
+		// Add the new location into the map.
+		_uniforms[name] = location;
+
+		return location;
+	}
+
+	/** /
+	GLuint ShaderProgram::getUniformLocation(const std::string& name)
+	{
+		if(_uniforms.find(name)
 		GLuint location = glGetUniformLocation(_programId, name.c_str());
 		if (location == -1)
 		{
@@ -55,6 +75,7 @@ namespace engine
 		}
 		return location;
 	}
+	/**/
 
 	void ShaderProgram::create()
 	{
@@ -85,6 +106,12 @@ namespace engine
 				std::cerr << "Warning! Uniform block " << block.first << " doesn't exist" << std::endl;
 			}
 			glUniformBlockBinding(_programId, UboId, block.second);
+		}
+
+		// Fill Uniform Map
+		for (auto &uniformName : this->_uniformsNames)
+		{
+			getUniformLocation(uniformName);
 		}
 
 		for (GLuint id : shaderIds)

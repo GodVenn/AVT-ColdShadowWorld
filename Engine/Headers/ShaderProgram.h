@@ -13,7 +13,7 @@ namespace engine
 
 		// Fields
 		unsigned int programId() const { return _programId; }
-		std::vector<std::string> uniforms() const { return _uniforms; };
+		//std::vector<std::string> uniforms() const { return _uniforms; };
 
 		// Methods
 		void bind();
@@ -38,7 +38,8 @@ namespace engine
 		GLuint _programId;
 
 		std::unordered_map<std::string, GLuint> _uniformBlocks;
-		std::vector<std::string> _uniforms;
+		std::vector<std::string> _uniformsNames;
+		std::unordered_map<std::string, GLuint> _uniforms;
 		std::unordered_map<std::string, GLuint> _attributes;
 		std::unordered_map<std::string, GLenum> _shaders;
 

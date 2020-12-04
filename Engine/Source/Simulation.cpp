@@ -1,6 +1,5 @@
 #include "../Headers/pch.h"
 #include "../Headers/Simulation.h"
-#include "../Headers/gl.h"
 
 namespace engine
 {
@@ -19,9 +18,9 @@ namespace engine
 
 	void Simulation::update(float deltaTime)
 	{
-		for (auto& o : objects) 
+		for (auto& object : objects) 
 		{
-			o->onUpdate(deltaTime);
+			object->onUpdate(deltaTime);
 		}
 	}
 }
