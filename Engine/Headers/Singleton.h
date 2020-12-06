@@ -5,10 +5,11 @@ namespace engine
 	template<typename T>
 	class Singleton
 	{
-
+		
 	protected:
 		static T* instance;
 		Singleton() { instance = static_cast<T*> (this); };
+		
 
 
 	public:

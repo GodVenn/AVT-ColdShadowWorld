@@ -13,6 +13,7 @@ namespace engine
 
 	ShaderProgram::~ShaderProgram()
 	{
+		this->_uniforms.clear();
 		glDeleteProgram(_programId);
 	}
 
@@ -121,6 +122,7 @@ namespace engine
 		}
 		this->_shaders.clear();
 		this->_attributes.clear();
+		this->_uniformsNames.clear();
 	}
 
 	void ShaderProgram::setUniform1i(const std::string& name, const int value)

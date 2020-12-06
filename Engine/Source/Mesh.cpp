@@ -10,9 +10,9 @@ namespace engine
 		this->NormalsLoaded = this->TexcoordsLoaded = false;
 		this->VaoId = 0;
 	}
-	Mesh::Mesh(const std::string& filename)
+	Mesh::Mesh(const std::string& filepath)
 	{
-		loadMeshData(filename);
+		loadMeshData(filepath);
 		processMeshData();
 		freeMeshData();
 		createBufferObjects();
@@ -76,9 +76,9 @@ namespace engine
 		else if (s.compare("f") == 0) parseFace(sin);
 	}
 
-	void Mesh::loadMeshData(const std::string& filename)
+	void Mesh::loadMeshData(const std::string& filepath)
 	{
-		std::ifstream ifile("Models\\" + filename);
+		std::ifstream ifile(filepath);
 		std::string line;
 		
 		if (ifile.is_open()) 
@@ -94,7 +94,7 @@ namespace engine
 		}
 		else 
 		{
-			std::cerr << "Error: Model file '" << filename << "'could not be found." << std::endl;
+			std::cerr << "Error: Model file '" << filepath << "'could not be found." << std::endl;
 		}
 
 	}

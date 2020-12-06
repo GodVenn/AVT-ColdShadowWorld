@@ -297,15 +297,16 @@ void MyApp::createShaderPrograms()
 /////////////////////////////////////////////////////////////////////// MESHEs
 void MyApp::createMeshes()
 {
-	std::string cube_file = "Cube.obj";
+	const std::string modelsFolder = "Models\\";
+	std::string cube_file = modelsFolder +  "Cube.obj";
 	Mesh* cube = new Mesh(cube_file);
 	MeshManager::getInstance()->add("Cube", cube);
 
-	std::string frame_file = "Frame.obj";
+	std::string frame_file = modelsFolder + "Frame.obj";
 	Mesh* frame = new Mesh(frame_file);
 	MeshManager::getInstance()->add("Frame", frame);
 
-	std::string frameBackground_file = "FrameBackground.obj";
+	std::string frameBackground_file = modelsFolder + "FrameBackground.obj";
 	Mesh* frameBackground = new Mesh(frameBackground_file);
 	MeshManager::getInstance()->add("FrameBackground", frameBackground);
 }

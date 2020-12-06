@@ -17,7 +17,7 @@ namespace engine
 		static const GLuint NORMALS = 2;
 
 		Mesh();
-		Mesh(const std::string& filename);
+		Mesh(const std::string& filepath);
 		~Mesh();
 
 		const void draw();
@@ -37,7 +37,7 @@ namespace engine
 		void parseNormal(std::stringstream& sin);
 		void parseFace(std::stringstream& sin);
 		void parseLine(std::stringstream& sin);
-		void loadMeshData(const std::string& filename);
+		void loadMeshData(const std::string& filepath);
 		void processMeshData();
 		void freeMeshData();
 		void createBufferObjects();
