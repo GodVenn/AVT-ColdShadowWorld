@@ -55,6 +55,7 @@ namespace engine
 
 		friend const float magnitude(const Vec3& vector);
 		friend const Vec3 normalize(const Vec3& vector);
+		friend const Vec3 lerp(const Vec3& start, const Vec3& end, float percentage);
 
 		const float dotProduct(const Vec3& other);
 		const Vec3 crossProduct(const Vec3& other) const;

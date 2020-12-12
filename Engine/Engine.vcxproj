@@ -172,7 +172,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\Animation.cpp" />
-    <ClCompile Include="Source\Animator.cpp" />
     <ClCompile Include="Source\AnimatorManager.cpp" />
     <ClCompile Include="Source\CameraController.cpp" />
     <ClCompile Include="Source\MyApp.cpp" />
@@ -202,7 +201,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Animation.h" />
-    <ClInclude Include="Headers\Animator.h" />
     <ClInclude Include="Headers\AnimatorManager.h" />
     <ClInclude Include="Headers\App.h" />
     <ClInclude Include="Headers\Camera.h" />

@@ -6,7 +6,7 @@ namespace engine
 
 	AnimatorManager::AnimatorManager()
 	{
-		this->_objects = new std::unordered_map <std::string, Animator*>();
+		this->_objects = new std::unordered_map <std::string, Animation*>();
 	}
 
 
@@ -28,7 +28,7 @@ namespace engine
 		}
 		std::cerr << "Animator with that name does not exists!" << std::endl;
 	}
-	Animator* AnimatorManager::get(std::string animatorName)
+	Animation* AnimatorManager::get(std::string animatorName)
 	{
 		if (_objects->find(animatorName) != _objects->end())
 		{
@@ -37,7 +37,7 @@ namespace engine
 		std::cerr << "Animator with that name does not exists!" << std::endl;
 		return nullptr;
 	}
-	void AnimatorManager::add(std::string animatorName, Animator* animator)
+	void AnimatorManager::add(std::string animatorName, Animation* animator)
 	{
 		if (_objects->find(animatorName) != _objects->end())
 		{

@@ -173,6 +173,11 @@ namespace engine
 		return (this->x * other.x + this->y * other.y + this->z * other.z);
 	}
 
+	const Vec3 lerp(const Vec3& start, const Vec3& end, float percentage)
+	{
+		return start + percentage * (end - start);
+	}
+
 	const Vec3 Vec3::crossProduct(const Vec3& other) const
 	{
 		float x = (this->y * other.z) - (this->z * other.y);

@@ -194,12 +194,10 @@ void MyApp::key_callback(GLFWwindow* win, int key, int scancode, int action, int
 		if (!isPenroseAnimationActivated)
 		{
 			isPenroseAnimationActivated = true;
-			AnimatorManager::getInstance()->get("Penrose")->toggle();
 		}
 		else
 		{
 			isPenroseAnimationActivated = false;
-			AnimatorManager::getInstance()->get("Penrose")->stopAnimation();
 		}
 	}
 	if (key == GLFW_KEY_F && action == 1)
@@ -208,23 +206,15 @@ void MyApp::key_callback(GLFWwindow* win, int key, int scancode, int action, int
 		if (!isFrameAnimationActivated)
 		{
 			isFrameAnimationActivated = true;
-			AnimatorManager::getInstance()->get("Frame")->toggle();
 		}
 		else
 		{
 			isFrameAnimationActivated = false;
-			AnimatorManager::getInstance()->get("Frame")->stopAnimation();
 		}
 	}
 
 	if (key == GLFW_KEY_R && action == 1)
 	{
-		///////////RESET ANIMATION
-		AnimatorManager::getInstance()->get("Penrose")->resetAnimation();
-		AnimatorManager::getInstance()->get("Frame")->resetAnimation();
-
-		AnimatorManager::getInstance()->get("Penrose")->stopAnimation();
-		AnimatorManager::getInstance()->get("Frame")->stopAnimation();
 
 		isFrameAnimationActivated = false;
 		isPenroseAnimationActivated = false;
@@ -437,69 +427,6 @@ void MyApp::createSceneGraph()
 	Mat4 mC9 = MatFactory::createTranslationMat4(posC9) * cubeScale;
 	SceneNode* n_cubo9 = createPenroseCube(pensore, mC9);
 
-
-	//Animation Penrose
-	Animator* animatorPenrose = new Animator();
-	AnimatorManager::getInstance()->add("Penrose", animatorPenrose);
-	State e_cubo1(mC1, mC2);
-	Animation a_Cubo1 = Animation(e_cubo1, n_cubo1, penseroseAnimationDuration);
-	animatorPenrose->addAnimation(a_Cubo1);
-
-	State e_cubo2(mC2, mC3);
-	Animation a_Cubo2 = Animation(e_cubo2, n_cubo2, penseroseAnimationDuration);
-	animatorPenrose->addAnimation(a_Cubo2);
-
-	State e_cubo3(mC3, mC4);
-	Animation a_Cubo3 = Animation(e_cubo3, n_cubo3, penseroseAnimationDuration);
-	animatorPenrose->addAnimation(a_Cubo3);
-
-	State e_cubo4(mC4, mC5);
-	Animation a_Cubo4 = Animation(e_cubo4, n_cubo4, penseroseAnimationDuration);
-	animatorPenrose->addAnimation(a_Cubo4);
-
-	State e_cubo5(mC5, mC6);
-	Animation a_Cubo5 = Animation(e_cubo5, n_cubo5, penseroseAnimationDuration);
-	animatorPenrose->addAnimation(a_Cubo5);
-
-	State e_cubo6(mC6, mC7);
-	Animation a_Cubo6 = Animation(e_cubo6, n_cubo6, penseroseAnimationDuration);
-	animatorPenrose->addAnimation(a_Cubo6);
-
-	State e_cubo7(mC7, mC8);
-	Animation a_Cubo7 = Animation(e_cubo7, n_cubo7, penseroseAnimationDuration);
-	animatorPenrose->addAnimation(a_Cubo7);
-
-	State e_cubo8(mC8, mC9);
-	Animation a_Cubo8 = Animation(e_cubo8, n_cubo8, penseroseAnimationDuration);
-	animatorPenrose->addAnimation(a_Cubo8);
-
-	State e_cubo9(mC9, mC1);
-	Animation a_Cubo9 = Animation(e_cubo9, n_cubo9, penseroseAnimationDuration);
-	animatorPenrose->addAnimation(a_Cubo9);
-
-	/// Animation Frame
-	Animator* animatorFrame = new Animator();
-	AnimatorManager::getInstance()->add("Frame", animatorFrame);
-	Mat4 f_rotation0 = frameTranslation * MatFactory::createRotationMat4(90, engine::AXIS3D_Y);
-	State e_Frame0(frameTranslation, f_rotation0);
-	Animation a_Frame0 = Animation(e_Frame0, root, frameAnimationDuration);
-	animatorFrame->addAnimation(a_Frame0);
-
-	Mat4 f_rotation1 = frameTranslation * MatFactory::createRotationMat4(180.f, engine::AXIS3D_Y);
-	State e_Frame1(f_rotation0, f_rotation1);
-	Animation a_Frame1 = Animation(e_Frame1, root, frameAnimationDuration);
-	animatorFrame->addAnimation(a_Frame1);
-
-	Mat4 f_rotation2 = frameTranslation * MatFactory::createRotationMat4(270.f, engine::AXIS3D_Y);
-	State e_Frame2(f_rotation1, f_rotation2);
-	Animation a_Frame2 = Animation(e_Frame2, root, frameAnimationDuration);
-	animatorFrame->addAnimation(a_Frame2);
-
-	Mat4 f_rotation3 = frameTranslation * MatFactory::createRotationMat4(360, engine::AXIS3D_Y);
-	State e_Frame3(f_rotation2, f_rotation3);
-	Animation a_Frame3 = Animation(e_Frame3, root, frameAnimationDuration);
-	animatorFrame->addAnimation(a_Frame3);
-
 }
 ///////////////////////////////////////////////////////////////////// SIMULATION
 void MyApp::createSimulation()
@@ -535,8 +462,6 @@ void MyApp::drawSceneGraph()
 
 void MyApp::onUpdate(float deltaTime)
 {
-	AnimatorManager::getInstance()->get("Penrose")->playAllAnimationLoop(deltaTime);
-	AnimatorManager::getInstance()->get("Frame")->playAnimationLoop(deltaTime);
 }
 
 ///////////////////////////////////////////////////////////////////////// MAIN
