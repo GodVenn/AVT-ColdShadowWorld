@@ -17,7 +17,20 @@ namespace engine
 		static const GLuint NORMALS = 2;
 
 		Mesh();
+
+		/// <summary>
+		/// Creates a mesh with buffer object from an .obj file
+		/// </summary>
+		/// <param name="filepath"></param>
 		Mesh(const std::string& filepath);
+
+		/// <summary>
+		/// Creates a mesh with buffer object from the vertex data passed as arguments
+		/// </summary>
+		/// <param name="Vertices"></param>
+		/// <param name="Texcoords"></param>
+		/// <param name="Normals"></param>
+		Mesh(std::vector <Vec3> Vertices, std::vector <Vec2> Texcoords, std::vector <Vec3> Normals);
 		~Mesh();
 
 		const void draw();

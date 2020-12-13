@@ -17,6 +17,24 @@ namespace engine
 		freeMeshData();
 		createBufferObjects();
 	}
+
+	Mesh::Mesh(std::vector<Vec3> vertices, std::vector<Vec2> texcoords, std::vector<Vec3> normals)
+	{
+		this->Vertices = vertices;
+		if (!texcoords.empty()) 
+		{
+			this->Texcoords = texcoords;
+			this->TexcoordsLoaded = true;
+		}
+
+		if (!normals.empty()) 
+		{
+			this->Normals = normals;
+			this->NormalsLoaded = true;
+		}
+		createBufferObjects();
+	}
+
 	Mesh::~Mesh()
 	{
 		destroyBufferObjects();

@@ -28,9 +28,9 @@ private:
 	/// CAMERA SETUP VALUES
 	Camera* mainCamera = nullptr;
 	CameraController* camController = nullptr;
-	const Vec3 initialEye = Vec3(0.f, 0.f, 5.f);
-	const Vec3 initialCenter = Vec3(0.f, 0.f, -1.f);
-	const Vec3 initialUp = Vec3(0.f, 1.f, 0.f);
+	const Vec3 initialEye = Vec3(0.0f, 0.0f, 5.0f);
+	const Vec3 initialCenter = Vec3(0.0f, 0.0f, 0.0f);
+	const Vec3 initialUp = Vec3(0.0f, 1.0f, 0.0f);
 	const float fovThreshold = 45.f;
 	float fov = 45.f;
 	//float camFactor = 0.0055f;
@@ -142,30 +142,6 @@ void MyApp::createShaderPrograms()
 	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	penrose->create();
 	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
-
-	//ShaderProgram* frame = new ShaderProgram();
-	//frame->addShader(shaderFolder + "frame_vs.glsl", GL_VERTEX_SHADER);
-	//frame->addShader(shaderFolder + "frame_fs.glsl", GL_FRAGMENT_SHADER);
-	//frame->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
-	//frame->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
-	//frame->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
-	//frame->addUniform(engine::MODEL_MATRIX);
-	//frame->addUniform("u_Color");
-	//frame->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
-	//frame->create();
-	//ShaderProgramManager::getInstance()->add("Frame", frame);
-
-	//ShaderProgram* frameBackground = new ShaderProgram();
-	//frameBackground->addShader(shaderFolder + "frame_vs.glsl", GL_VERTEX_SHADER);
-	//frameBackground->addShader(shaderFolder + "frame_fs.glsl", GL_FRAGMENT_SHADER);
-	//frameBackground->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
-	//frameBackground->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
-	//frameBackground->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
-	//frameBackground->addUniform(engine::MODEL_MATRIX);
-	//frameBackground->addUniform("u_Color");
-	//frameBackground->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
-	//frameBackground->create();
-	//ShaderProgramManager::getInstance()->add("FrameBackground", frameBackground);
 }
 /////////////////////////////////////////////////////////////////////// MESHEs
 void MyApp::createMeshes()
@@ -175,13 +151,18 @@ void MyApp::createMeshes()
 	Mesh* cube = new Mesh(cube_file);
 	MeshManager::getInstance()->add("Cube", cube);
 
-	//std::string frame_file = modelsFolder + "Frame.obj";
-	//Mesh* frame = new Mesh(frame_file);
-	//MeshManager::getInstance()->add("Frame", frame);
+	// Terrain
+	float terrainWidth = 10;
+	float terrainLength = 5;
+	float terrainMaxHeight = 10;
+	unsigned int terrainSimplicity = 1;
+	TerrainBuilder terrainBuilder = TerrainBuilder(terrainWidth, terrainLength, terrainSimplicity, terrainMaxHeight);
 
-	//std::string frameBackground_file = modelsFolder + "FrameBackground.obj";
-	//Mesh* frameBackground = new Mesh(frameBackground_file);
-	//MeshManager::getInstance()->add("FrameBackground", frameBackground);
+	const std::string heightMap = "Textures\\earthbump1k.jpg";
+	terrainBuilder.setHeightMap(heightMap);
+	Mesh* terrain = terrainBuilder.buildMesh();
+	MeshManager::getInstance()->add("Terrain", terrain);
+
 }
 /////////////////////////////////////////////////////////////////////// CAMERA
 void MyApp::setupCamera()
@@ -193,7 +174,7 @@ void MyApp::setupCamera()
 
 	aspect = winX / winY;
 
-	mainCamera = new Camera(initialEye, initialEye + initialCenter, initialUp, UBO_CAMERA);
+	mainCamera = new Camera(initialEye, initialCenter, initialUp, UBO_CAMERA);
 	mainCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
 
 	float initialYaw = 90.0f;
@@ -214,6 +195,12 @@ void MyApp::createSceneGraph()
 	SceneNode* testCube = scene->getRoot();
 	testCube->setMesh(MeshManager::getInstance()->get("Cube"));
 	testCube->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
+
+	// Test terrain
+	SceneNode* terrainNode = scene->getRoot()->createNode();
+	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
+	terrainNode->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
+	terrainNode->setMatrix(MatFactory::createTranslationMat4(Vec3(5, 0, 0)));
 }
 ///////////////////////////////////////////////////////////////////// SIMULATION
 void MyApp::createSimulation()
@@ -224,11 +211,12 @@ void MyApp::createSimulation()
 ///////////////////////////////////////////////////////////////////// DETROYs
 void MyApp::destroyManagers()
 {
+	SamplerManager::freeInstance();
+	TextureManager::freeInstance();
 	AnimatorManager::freeInstance();
 	ShaderProgramManager::freeInstance();
 	MeshManager::freeInstance();
 	SceneGraphManager::freeInstance();
-
 }
 
 void MyApp::destroySimulation()

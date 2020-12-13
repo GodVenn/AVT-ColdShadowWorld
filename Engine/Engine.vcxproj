@@ -197,6 +197,7 @@
     <ClCompile Include="Source\ShaderProgramManager.cpp" />
     <ClCompile Include="Source\ShaderProgram.cpp" />
     <ClCompile Include="Source\Simulation.cpp" />
+    <ClCompile Include="Source\TerrainBuilder.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\TextureManager.cpp" />
     <ClCompile Include="Source\Vector.cpp" />
@@ -231,6 +232,7 @@
     <ClInclude Include="Headers\ShaderProgramManager.h" />
     <ClInclude Include="Headers\Simulation.h" />
     <ClInclude Include="Headers\Singleton.h" />
+    <ClInclude Include="Headers\TerrainBuilder.h" />
     <ClInclude Include="Headers\Texture.h" />
     <ClInclude Include="Headers\TextureManager.h" />
     <ClInclude Include="Headers\Vector.h" />
