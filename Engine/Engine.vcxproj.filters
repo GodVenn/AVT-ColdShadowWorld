@@ -241,5 +241,7 @@
     <None Include="Shaders\frame_fs.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\heightMap_vs.glsl" />
+    <None Include="Shaders\heightMap_fs.glsl" />
   </ItemGroup>
 </Project>

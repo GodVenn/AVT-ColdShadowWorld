@@ -147,8 +147,12 @@ namespace engine
 					tex->updateShader(activeShader);
 				}
 			}
-			Mat4 modelMatrix = getModelMatrix();
-			activeShader->setUniformMat4("ModelMatrix", modelMatrix);
+
+			if (activeShader->getUniformLocation("ModelMatrix") != -1)
+			{
+				Mat4 modelMatrix = getModelMatrix();
+				activeShader->setUniformMat4("ModelMatrix", modelMatrix);
+			}
 
 			mesh->draw();
 

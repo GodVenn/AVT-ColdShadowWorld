@@ -43,10 +43,11 @@ namespace engine
 		stbi_set_flip_vertically_on_load(1);
 		stbi_uc* data = nullptr;
 		{
-			data = stbi_load(filename.c_str(), &width, &height, &channels, 0);
+			data = stbi_load(filename.c_str(), &width, &height, &channels, 4);
 		}
 
-		ASSERT(data, "Failed to load image!");
+		std::string failMsg = "Failed to load 2D Texture from path: " + filename;
+		ASSERT(data, failMsg);
 
 		GLenum internalFormat = 0, dataFormat = 0;
 		if (channels == 4)
@@ -72,7 +73,7 @@ namespace engine
 
 		glTextureSubImage2D(id, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-		glGenerateMipmap(GL_TEXTURE_2D);
+		//glGenerateMipmap(GL_TEXTURE_2D);
 
 		stbi_image_free(data);
 

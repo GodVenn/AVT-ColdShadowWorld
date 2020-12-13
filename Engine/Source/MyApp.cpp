@@ -34,7 +34,7 @@ private:
 	const float fovThreshold = 45.f;
 	float fov = 45.f;
 	//float camFactor = 0.0055f;
-	float near = 1.f;
+	float near = 0.1f;
 	float far = 100.f;
 	/*float top = 0.f;
 	float botton = 0.f;
@@ -46,7 +46,7 @@ private:
 	const float cameraSpeed = 6.0f;
 	const float cameraSensitivity = 0.05f;
 
-
+	void createTextures();
 	void createMeshes();
 	void setupCamera();
 	void createShaderPrograms();
@@ -64,6 +64,7 @@ private:
 /////////////////////////////////////////////////////////////////////// CALLBACKs
 void MyApp::initApp()
 {
+	createTextures();
 	createMeshes();
 	setupCamera();
 	createShaderPrograms();
@@ -142,8 +143,32 @@ void MyApp::createShaderPrograms()
 	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	penrose->create();
 	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
+
+
+	ShaderProgram* textureShader = new ShaderProgram();
+	textureShader->addShader(shaderFolder + "heightMap_vs.glsl", GL_VERTEX_SHADER);
+	textureShader->addShader(shaderFolder + "heightMap_fs.glsl", GL_FRAGMENT_SHADER);
+	textureShader->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	textureShader->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
+	textureShader->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
+	textureShader->addUniform("Texture");
+	textureShader->addUniform(engine::MODEL_MATRIX);
+	textureShader->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	textureShader->create();
+	ShaderProgramManager::getInstance()->add("SimpleTexture", textureShader);
 }
-/////////////////////////////////////////////////////////////////////// MESHEs
+
+/////////////////////////////////////////////////////////////////////// TEXTUREs
+void MyApp::createTextures()
+{
+	const std::string TextureFolder = "Textures\\";
+	std::string texturePath = TextureFolder + "earthbump1k.jpg";
+	Texture2D* earth = new Texture2D();
+	earth->load(texturePath);
+	TextureManager::getInstance()->add("EarthHeightMap", earth);
+}
+
+/////////////////////////////////////////////////////////////////////// MESHes
 void MyApp::createMeshes()
 {
 	const std::string modelsFolder = "Models\\";
@@ -154,8 +179,8 @@ void MyApp::createMeshes()
 	// Terrain
 	float terrainWidth = 10;
 	float terrainLength = 5;
-	float terrainMaxHeight = 10;
-	unsigned int terrainSimplicity = 1;
+	float terrainMaxHeight = 0.1f;
+	unsigned int terrainSimplicity = 4;
 	TerrainBuilder terrainBuilder = TerrainBuilder(terrainWidth, terrainLength, terrainSimplicity, terrainMaxHeight);
 
 	const std::string heightMap = "Textures\\earthbump1k.jpg";
@@ -199,7 +224,11 @@ void MyApp::createSceneGraph()
 	// Test terrain
 	SceneNode* terrainNode = scene->getRoot()->createNode();
 	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
-	terrainNode->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
+	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("SimpleTexture");
+	TextureInfo* texInfo = new TextureInfo(GL_TEXTURE0, 0, "Texture", TextureManager::getInstance()->get("EarthHeightMap"));
+	terrainNode->addTextureInfo(texInfo);
+	terrainNode->setShaderProgram(terrainShader);
+
 	terrainNode->setMatrix(MatFactory::createTranslationMat4(Vec3(5, 0, 0)));
 }
 ///////////////////////////////////////////////////////////////////// SIMULATION
