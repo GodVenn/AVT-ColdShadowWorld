@@ -28,7 +28,7 @@ private:
 	/// CAMERA SETUP VALUES
 	Camera* mainCamera = nullptr;
 	CameraController* camController = nullptr;
-	const Vec3 initialEye = Vec3(0.0f, 0.0f, 5.0f);
+	const Vec3 initialEye = Vec3(0.0f, 5.0f, 5.0f);
 	const Vec3 initialCenter = Vec3(0.0f, 0.0f, 0.0f);
 	const Vec3 initialUp = Vec3(0.0f, 1.0f, 0.0f);
 	const float fovThreshold = 45.f;
@@ -92,10 +92,6 @@ void MyApp::window_size_callback(GLFWwindow* win, int winx, int winy)
 	int winY = App::getInstance()->windowHeight = winy;
 
 	aspect = static_cast<float>(winX) / static_cast<float>(winY);
-	//right = winX * camFactor;
-	//left = -right;
-	//top = winY * camFactor;
-	//botton = -top;
 	mainCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
 }
 
@@ -181,7 +177,8 @@ void MyApp::createMeshes()
 	float terrainLength = 5;
 	float terrainMaxHeight = 0.1f;
 	unsigned int terrainSimplicity = 4;
-	TerrainBuilder terrainBuilder = TerrainBuilder(terrainWidth, terrainLength, terrainSimplicity, terrainMaxHeight);
+	bool calculateNormals = false;
+	TerrainBuilder terrainBuilder = TerrainBuilder(terrainWidth, terrainLength, terrainSimplicity, terrainMaxHeight, calculateNormals);
 
 	const std::string heightMap = "Textures\\earthbump1k.jpg";
 	terrainBuilder.setHeightMap(heightMap);
@@ -202,7 +199,7 @@ void MyApp::setupCamera()
 	mainCamera = new Camera(initialEye, initialCenter, initialUp, UBO_CAMERA);
 	mainCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
 
-	float initialYaw = 90.0f;
+	float initialYaw = 0.0f;
 	float initialPitch = 0.0f;
 	camController = new CameraController(*mainCamera, winY, winX, initialYaw, initialPitch);
 
