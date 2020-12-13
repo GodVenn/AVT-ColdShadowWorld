@@ -22,7 +22,7 @@ namespace engine {
 		_pitch = initialPitch;
 	}
 
-	void CameraController::updateYawPitch(float newX, float newY)
+	void CameraController::setYawPitch(float newX, float newY)
 	{
 		if (_firstMouse)
 		{
@@ -48,22 +48,22 @@ namespace engine {
 			this->_pitch = -89.0f;
 	}
 
-	void CameraController::updateMovement(const int right, const int left, const int forward, const int backwards, const float elapsed_time)
+	void CameraController::setMovement(const int right, const int left, const int forward, const int backwards)
 	{
 		const Vec3 view = normalize(cam->center - cam->eye);
-		Vec3 forwardMvmt = view * (float)(forward - backwards) * this->movementSpeed * elapsed_time;
+		Vec3 forwardMvmt = view * (float)(forward - backwards) * this->movementSpeed;
 
 		Vec3 sidewaysMvmt = Vec3();
 		if (right || left) {
 			const Vec3 side = normalize(view.crossProduct(cam->up));
-			sidewaysMvmt = side * (float)(right - left) * this->movementSpeed * elapsed_time;
+			sidewaysMvmt = side * (float)(right - left) * this->movementSpeed ;
 		}
 
 		this->_cameraMovement = sidewaysMvmt + forwardMvmt;
 
 	}
 
-	void CameraController::moveCam()
+	void CameraController::update(const float deltaTime)
 	{
 		if (this->cam == nullptr) {
 			std::cerr << "ERROR: No camera attached to the cameraMover" << std::endl;
@@ -80,8 +80,8 @@ namespace engine {
 
 		this->cam->center = this->cam->eye + direction;
 
-		this->cam->center += this->_cameraMovement;
-		this->cam->eye += this->_cameraMovement;
+		this->cam->center += this->_cameraMovement * deltaTime;
+		this->cam->eye += this->_cameraMovement * deltaTime;
 
 		this->_cameraMovement = Vec3();
 	}

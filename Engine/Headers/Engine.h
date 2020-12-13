@@ -10,3 +10,4 @@
 #include "SceneGraphManager.h"
 #include "ShaderProgramManager.h"
 #include "Simulation.h"
+#include "CameraController.h"
