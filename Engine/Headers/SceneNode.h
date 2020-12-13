@@ -1,7 +1,8 @@
 #pragma once
 
-#include "ShaderProgram.h"
-#include "Mesh.h"
+#include "../Headers/ShaderProgram.h"
+#include "../Headers/Mesh.h"
+#include "../Headers/Texture.h"
 
 namespace engine 
 {
@@ -27,9 +28,10 @@ namespace engine
 		SceneNode* createNode();
 
 		void addNode(SceneNode* node);
-		
+		void addTextureInfo(TextureInfo* texInfo);
+
 		void setMesh(Mesh* mesh);
-		void setMatrix(Mat4& matrix);
+		void setMatrix(const Mat4& matrix);
 		void setParent(SceneNode* parent);
 		void setCallback(ISceneNodeCallBack* callback);
 		void setShaderProgram(ShaderProgram* shader);
@@ -48,7 +50,8 @@ namespace engine
 		ShaderProgram* shader;
 		Mesh* mesh;
 		Mat4 matrix;
-		ISceneNodeCallBack* callback;	
+		ISceneNodeCallBack* callback;
+		std::vector<TextureInfo*> textures;
 
 	};
 }

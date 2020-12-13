@@ -1,5 +1,6 @@
 #include "../Headers/pch.h"
 #include "../Headers/SceneNode.h"
+#include "../Headers/Base.h"
 
 namespace engine
 {
@@ -20,6 +21,7 @@ namespace engine
 		this->shader = nullptr;
 		this->callback = nullptr;
 		this->matrix = MatFactory::createIdentityMat4();
+
 	}
 
 	SceneNode::~SceneNode()
@@ -29,6 +31,12 @@ namespace engine
 			delete n;
 
 		}
+		for (auto& tex : textures)
+		{
+			delete tex;
+
+		}
+		textures.clear();
 		nodes.clear();
 	}
 
@@ -46,6 +54,11 @@ namespace engine
 		this->nodes.push_back(node);
 	}
 
+	void SceneNode::addTextureInfo(TextureInfo* texInfo)
+	{
+		this->textures.push_back(texInfo);
+	}
+
 	std::vector<SceneNode*> SceneNode::getNodes()
 	{
 		return this->nodes;
@@ -61,14 +74,14 @@ namespace engine
 		return this->mesh;
 	}
 
-	void SceneNode::setMatrix(Mat4& matrix)
+	void SceneNode::setMatrix(const Mat4& matrix)
 	{
 		this->matrix = matrix;
 	}
 
 	void SceneNode::setParent(SceneNode* parent)
 	{
-		if (!this->parent) 
+		if (!this->parent)
 		{
 			this->parent = parent;
 		}
@@ -81,7 +94,7 @@ namespace engine
 
 	Mat4 SceneNode::getModelMatrix()
 	{
-		if (parent) 
+		if (parent)
 		{
 			return this->parent->getModelMatrix() * this->matrix;
 		}
@@ -95,26 +108,24 @@ namespace engine
 
 	ShaderProgram* SceneNode::getActiveShaderProgram()
 	{
-		if (!shader) 
+		if (!shader)
 		{
 			if (parent)
 			{
 				shader = parent->getActiveShaderProgram();
 			}
-			else 
+			else
 			{
-				std::cerr << "No shader was found for the scene node" << std::endl;
-				return nullptr;
+				ASSERT(false, "No shader was found for the scene node");
 			}
 		}
-		
+
 		return this->shader;
 	}
 
 	void SceneNode::draw()
 	{
 		ShaderProgram* activeShader = getActiveShaderProgram();
-		if (!activeShader) return;
 
 		for (auto& n : nodes)
 		{
@@ -126,16 +137,22 @@ namespace engine
 			callback->beforeDraw(this);
 		}
 
-		if (mesh) 
+		if (mesh)
 		{
-			
-			shader->bind();
+			activeShader->bind();
+			if (!textures.empty())
+			{
+				for (auto& tex : textures)
+				{
+					tex->updateShader(activeShader);
+				}
+			}
 			Mat4 modelMatrix = getModelMatrix();
-			shader->setUniformMat4("ModelMatrix", modelMatrix);
-			
+			activeShader->setUniformMat4("ModelMatrix", modelMatrix);
+
 			mesh->draw();
 
-			shader->unbind();
+			activeShader->unbind();
 		}
 
 		if (callback)

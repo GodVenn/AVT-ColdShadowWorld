@@ -108,7 +108,7 @@ void MyApp::window_size_callback(GLFWwindow* win, int winx, int winy)
 	}
 	else
 	{
-		camera->setOrthograpicProjectionMatrix(left, right, botton, top, near, far);
+		camera->setOrthographicProjectionMatrix(left, right, botton, top, near, far);
 	}
 }
 
@@ -180,7 +180,7 @@ void MyApp::key_callback(GLFWwindow* win, int key, int scancode, int action, int
 		if (perspectiveProj)
 		{
 			perspectiveProj = false;
-			camera->setOrthograpicProjectionMatrix(left, right, botton, top, near, far);
+			camera->setOrthographicProjectionMatrix(left, right, botton, top, near, far);
 		}
 		else
 		{
@@ -302,8 +302,7 @@ void MyApp::createMeshes()
 }
 /////////////////////////////////////////////////////////////////////// CAMERA
 void MyApp::createCamera()
-{
-
+{		
 	float winY = static_cast<float>(App::getInstance()->windowHeight);
 	float winX = static_cast<float>(App::getInstance()->windowWidth);
 	top = winY * camFactor;
@@ -323,7 +322,7 @@ void MyApp::createCamera()
 	}
 	else
 	{
-		camera->setOrthograpicProjectionMatrix(left, right, botton, top, near, far);
+		camera->setOrthographicProjectionMatrix(left, right, botton, top, near, far);
 	}
 }
 /////////////////////////////////////////////////////////////////////// SCENE

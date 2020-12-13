@@ -1,5 +1,6 @@
 #include "../Headers/pch.h"
 #include "../Headers/Camera.h"
+#include "../Headers/Input.h"
 
 namespace engine
 {
@@ -91,7 +92,7 @@ namespace engine
 		this->viewMatrix = MatFactory::createViewMatrix(eye, center, up);
 	}
 
-	void Camera::setOrthograpicProjectionMatrix(const float left, const float right, const float bottom, const float top, const float near, const float far)
+	void Camera::setOrthographicProjectionMatrix(const float left, const float right, const float bottom, const float top, const float near, const float far)
 	{
 		this->projMatrix = MatFactory::createOrthographicProjectionMatrix(left, right, bottom, top, near, far);
 	}

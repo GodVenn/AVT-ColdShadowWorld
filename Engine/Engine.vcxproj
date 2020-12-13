@@ -97,7 +97,7 @@
       <PreprocessorDefinitions>
       </PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Dependencies\glfw\include;$(SolutionDir)..\Dependencies\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Dependencies\glfw\include;$(SolutionDir)..\Dependencies\glew\include;$(SolutionDir)\Vendor\stb_image;$(SolutionDir)\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>../Headers/pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -117,7 +117,7 @@
       <PreprocessorDefinitions>
       </PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Dependencies\glfw\include;$(SolutionDir)..\Dependencies\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Dependencies\glfw\include;$(SolutionDir)..\Dependencies\glew\include;$(SolutionDir)\Vendor\stb_image;$(SolutionDir)\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>../Headers/pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -137,7 +137,7 @@
       <PreprocessorDefinitions>
       </PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Dependencies\glfw\include;$(SolutionDir)..\Dependencies\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Dependencies\glfw\include;$(SolutionDir)..\Dependencies\glew\include;$(SolutionDir)\Vendor\stb_image;$(SolutionDir)\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>../Headers/pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -157,7 +157,7 @@
       <PreprocessorDefinitions>
       </PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Dependencies\glfw\include;$(SolutionDir)..\Dependencies\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Dependencies\glfw\include;$(SolutionDir)..\Dependencies\glew\include;$(SolutionDir)\Vendor\stb_image;$(SolutionDir)\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>../Headers/pch.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -174,6 +174,7 @@
     <ClCompile Include="Source\Animation.cpp" />
     <ClCompile Include="Source\AnimatorManager.cpp" />
     <ClCompile Include="Source\CameraController.cpp" />
+    <ClCompile Include="Source\Input.cpp" />
     <ClCompile Include="Source\MyApp.cpp" />
     <ClCompile Include="Source\App.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
@@ -189,23 +190,29 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Source\Quaternion.cpp" />
+    <ClCompile Include="Source\SamplerManager.cpp" />
     <ClCompile Include="Source\SceneGraph.cpp" />
     <ClCompile Include="Source\SceneGraphManager.cpp" />
     <ClCompile Include="Source\SceneNode.cpp" />
     <ClCompile Include="Source\ShaderProgramManager.cpp" />
     <ClCompile Include="Source\ShaderProgram.cpp" />
     <ClCompile Include="Source\Simulation.cpp" />
+    <ClCompile Include="Source\Texture.cpp" />
+    <ClCompile Include="Source\TextureManager.cpp" />
     <ClCompile Include="Source\Vector.cpp" />
     <ClCompile Include="Source\VertexArray.cpp" />
     <ClCompile Include="Source\VertexBuffer.cpp" />
+    <ClCompile Include="Vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Animation.h" />
     <ClInclude Include="Headers\AnimatorManager.h" />
     <ClInclude Include="Headers\App.h" />
+    <ClInclude Include="Headers\Base.h" />
     <ClInclude Include="Headers\Camera.h" />
     <ClInclude Include="Headers\CameraController.h" />
     <ClInclude Include="Headers\Constants.h" />
+    <ClInclude Include="Headers\Input.h" />
     <ClInclude Include="Headers\NodeCallbacks.h" />
     <ClInclude Include="Headers\Engine.h" />
     <ClInclude Include="Headers\gl.h" />
@@ -216,6 +223,7 @@
     <ClInclude Include="Headers\MeshManager.h" />
     <ClInclude Include="Headers\pch.h" />
     <ClInclude Include="Headers\Quaternion.h" />
+    <ClInclude Include="Headers\SamplerManager.h" />
     <ClInclude Include="Headers\SceneGraph.h" />
     <ClInclude Include="Headers\SceneGraphManager.h" />
     <ClInclude Include="Headers\SceneNode.h" />
@@ -223,10 +231,13 @@
     <ClInclude Include="Headers\ShaderProgramManager.h" />
     <ClInclude Include="Headers\Simulation.h" />
     <ClInclude Include="Headers\Singleton.h" />
+    <ClInclude Include="Headers\Texture.h" />
+    <ClInclude Include="Headers\TextureManager.h" />
     <ClInclude Include="Headers\Vector.h" />
     <ClInclude Include="Headers\VertexArray.h" />
     <ClInclude Include="Headers\VertexBuffer.h" />
     <ClInclude Include="Headers\VertexBufferLayout.h" />
+    <ClInclude Include="Vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\cube_fs.glsl" />

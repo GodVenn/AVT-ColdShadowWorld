@@ -34,6 +34,8 @@ namespace engine
 		void setGLApp(IApp* glApp);
 		void setupOpenGL(int major, int minor);
 		void setupWindow(int width, int height, const char* title, int fullScreen, int vsync);
+
+		inline GLFWwindow* getWindow() { return window; }
 		void init();
 		void run();
 
@@ -52,7 +54,7 @@ namespace engine
 		void setupWindow();
 		void setupOpenGL();
 		void setupGLEW();
-		void setupGLWF();
+		void setupGLFW();
 
 		void setupCallbacks();
 

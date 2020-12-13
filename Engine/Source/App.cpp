@@ -24,7 +24,7 @@ namespace engine
 	/////////////////////////////////////////////////////////////////////// SETUP
 	void App::init()
 	{
-		setupGLWF();
+		setupGLFW();
 		setupGLEW();
 		setupOpenGL();
 
@@ -82,7 +82,7 @@ namespace engine
 	{
 		std::cerr << "GLFW Error: " << description << std::endl;
 	}
-	void App::setupGLWF()
+	void App::setupGLFW()
 	{
 		glfwSetErrorCallback(glfw_error_callback);
 		if (!glfwInit())
