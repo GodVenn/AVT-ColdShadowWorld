@@ -87,7 +87,7 @@ namespace engine {
 		// Calculate average
 		float weight = 1.0f / (float)normals.size();
 		Vec3 avgNormal = Vec3(0);
-		for(Vec3 normal : normals)
+		for (Vec3 normal : normals)
 		{
 			avgNormal += weight * normal;
 		}
@@ -107,7 +107,7 @@ namespace engine {
 	TerrainBuilder::TerrainBuilder(float terrainWidth, float terrainLength, unsigned int simplificationFactor, float maxTerrainHeight, bool calculateNormals)
 	{
 		this->calculateNormals = calculateNormals;
-		this->simplificationFactor = std::max(simplificationFactor,(unsigned int)1);
+		this->simplificationFactor = std::max(simplificationFactor, (unsigned int)1);
 		this->terrainMesh = nullptr;
 		this->terrainSizeX = terrainWidth;
 		this->terrainSizeY = terrainLength;
@@ -301,12 +301,17 @@ namespace engine {
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
 						vertexNormals[normX + i * normY] = normal;
+#if _DEBUG
 						calculateCount++;
+#endif
 					}
 					else
 					{
 						normal = vertexNormals[normX + i * normY];
+#if _DEBUG
 						dictionaryCount++;
+#endif
+
 					}
 					normals.push_back(normal);
 
@@ -317,12 +322,18 @@ namespace engine {
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
 						vertexNormals[normX + i * normY] = normal;
+#if _DEBUG
 						calculateCount++;
+#endif
+
 					}
 					else
 					{
 						normal = vertexNormals[normX + i * normY];
+#if _DEBUG
 						dictionaryCount++;
+#endif
+
 					}
 					normals.push_back(normal);
 
@@ -332,12 +343,17 @@ namespace engine {
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
 						vertexNormals[normX + i * normY] = normal;
+#if _DEBUG
 						calculateCount++;
+#endif
+
 					}
 					else
 					{
 						normal = vertexNormals[normX + i * normY];
+#if _DEBUG
 						dictionaryCount++;
+#endif
 					}
 					normals.push_back(normal);
 
@@ -349,12 +365,16 @@ namespace engine {
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
 						vertexNormals[normX + i * normY] = normal;
+#if _DEBUG
 						calculateCount++;
+#endif
 					}
 					else
 					{
 						normal = vertexNormals[normX + i * normY];
+#if _DEBUG
 						dictionaryCount++;
+#endif
 					}
 					normals.push_back(normal);
 
@@ -366,12 +386,16 @@ namespace engine {
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
 						vertexNormals[normX + i * normY] = normal;
+#if _DEBUG
 						calculateCount++;
+#endif
 					}
 					else
 					{
 						normal = vertexNormals[normX + i * normY];
+#if _DEBUG
 						dictionaryCount++;
+#endif
 					}
 					normals.push_back(normal);
 
@@ -382,12 +406,16 @@ namespace engine {
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
 						vertexNormals[normX + i * normY] = normal;
+#if _DEBUG
 						calculateCount++;
+#endif
 					}
 					else
 					{
 						normal = vertexNormals[normX + i * normY];
+#if _DEBUG
 						dictionaryCount++;
+#endif
 					}
 					normals.push_back(normal);
 				}
