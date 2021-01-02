@@ -171,6 +171,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\ParticleSystem.cpp" />
     <ClCompile Include="Source\Animation.cpp" />
     <ClCompile Include="Source\AnimatorManager.cpp" />
     <ClCompile Include="Source\CameraController.cpp" />
@@ -227,12 +228,16 @@
     <ClInclude Include="Headers\VertexArray.h" />
     <ClInclude Include="Headers\VertexBuffer.h" />
     <ClInclude Include="Headers\VertexBufferLayout.h" />
+    <ClInclude Include="Headers\ParticleSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\cube_fs.glsl" />
     <None Include="Shaders\cube_vs.glsl" />
     <None Include="Shaders\frame_fs.glsl" />
     <None Include="Shaders\frame_vs.glsl" />
+    <None Include="Shaders\particle_fs.glsl" />
+    <None Include="Shaders\particle_geom.glsl" />
+    <None Include="Shaders\particle_vs.glsl" />
     <None Include="Shaders\Shader_f.glsl" />
     <None Include="Shaders\Shader_v.glsl" />
   </ItemGroup>

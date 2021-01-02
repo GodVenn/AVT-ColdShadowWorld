@@ -99,6 +99,9 @@
     <ClCompile Include="Source\CameraController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ParticleSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Engine.h">
@@ -182,6 +185,9 @@
     <ClInclude Include="Headers\pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\ParticleSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Shader_v.glsl">
@@ -202,5 +208,8 @@
     <None Include="Shaders\frame_fs.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\particle_fs.glsl" />
+    <None Include="Shaders\particle_geom.glsl" />
+    <None Include="Shaders\particle_vs.glsl" />
   </ItemGroup>
 </Project>

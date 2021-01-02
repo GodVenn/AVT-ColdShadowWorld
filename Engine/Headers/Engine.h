@@ -7,6 +7,7 @@
 #include "NodeCallbacks.h"
 #include "Quaternion.h"
 #include "MeshManager.h"
+#include "ParticleSystem.h"
 #include "SceneGraphManager.h"
 #include "ShaderProgramManager.h"
 #include "Simulation.h"

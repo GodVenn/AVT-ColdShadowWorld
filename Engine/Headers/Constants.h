@@ -18,4 +18,5 @@ namespace engine
 	const std::string VERTEX_ATTRIBUTE = "inPosition";
 	const std::string TEXCOORDS_ATTRIBUTE = "inTexcoord";
 	const std::string NORMAL_ATTRIBUTE = "inNormal";
+	const std::string COLOR_ATTRIBUTE = "inColor";
 }

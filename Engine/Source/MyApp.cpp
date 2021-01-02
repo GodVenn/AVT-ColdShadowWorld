@@ -1,6 +1,11 @@
 #include "../Headers/pch.h"
 #include "../Headers/Engine.h"
 /**/
+
+
+#include <stdlib.h>
+#include <crtdbg.h>
+#define _CRTDBG_MAP_ALLOC
 using namespace engine;
 
 class MyApp : public IApp, IUpdatable
@@ -35,12 +40,12 @@ private:
 	Vec3 eye = Vec3(0.f, 0.f, 5.f);
 	Vec3 center = Vec3(0.f, 0.f, -1.f);
 	Vec3 up = Vec3(0.f, 1.f, 0.f);
-	bool perspectiveProj = false;
+	bool perspectiveProj = true;
 	const float fovThreshold = 45.f;
 	float fov = 45.f;
 	float camFactor = 0.0055f;
-	float near = 1.f;
-	float far = 100.f;
+	float near = 0.1f;
+	float far = 1000.f;
 	float top = 0.f;
 	float botton = 0.f;
 	float right = 0.f;
@@ -54,6 +59,8 @@ private:
 	bool firstMouse = true;
 	bool tracking = false;
 
+
+	Particle default_Particle;
 
 	void createMeshes();
 	void createCamera();
@@ -242,6 +249,13 @@ void MyApp::key_callback(GLFWwindow* win, int key, int scancode, int action, int
 		window_close_callback(win);
 	}
 	camera->setViewMatrix(eye, eye + center, up);
+
+	if (glfwGetKey(win, GLFW_KEY_L) == GLFW_PRESS)
+	{
+		std::cout << "Emit!\n";
+		for (int i = 0; i < 1; i++)
+			ParticleSystem::getInstance()->AddParticle(default_Particle);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////// SHADERs
@@ -283,6 +297,19 @@ void MyApp::createShaderPrograms()
 	frameBackground->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	frameBackground->create();
 	ShaderProgramManager::getInstance()->add("FrameBackground", frameBackground);
+
+	ShaderProgram* particles = new ShaderProgram();
+	particles->addShader(shaderFolder + "particle_vs.glsl", GL_VERTEX_SHADER);
+	particles->addShader(shaderFolder + "particle_geom.glsl", GL_GEOMETRY_SHADER);
+	particles->addShader(shaderFolder + "particle_fs.glsl", GL_FRAGMENT_SHADER);
+	particles->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	particles->addAttribute(1, engine::COLOR_ATTRIBUTE);
+	particles->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	particles->create();
+	ShaderProgramManager::getInstance()->add("Particles", particles);
+
+
+	//setUpParticle();
 }
 /////////////////////////////////////////////////////////////////////// MESHEs
 void MyApp::createMeshes()
@@ -426,7 +453,6 @@ void MyApp::createSceneGraph()
 	Vec3 posC9 = Vec3(0, -3 * cubeOffset, 0);
 	Mat4 mC9 = MatFactory::createTranslationMat4(posC9) * cubeScale;
 	SceneNode* n_cubo9 = createPenroseCube(pensore, mC9);
-
 }
 ///////////////////////////////////////////////////////////////////// SIMULATION
 void MyApp::createSimulation()
@@ -455,15 +481,26 @@ void MyApp::destroyCallbacks()
 }
 
 ///////////////////////////////////////////////////////////////////// DRAW AND UPDATEs
+float maxTime = 0.1f;
+float time = maxTime;
 void MyApp::drawSceneGraph()
 {
-	SceneGraphManager::getInstance()->get("Main")->draw();
+	float deltaTime = static_cast<float>(App::getInstance()->deltaTime);
+
+	time -= deltaTime;
+	if (time <= 0.0f)
+	{
+		for (int i = 0; i < 1; i++)
+			ParticleSystem::getInstance()->AddParticle(default_Particle);
+		time = maxTime;
+	}
+	ParticleSystem::getInstance()->OnUpdate(deltaTime, SceneGraphManager::getInstance()->get("Main")->getCamera());
+
 }
 
 void MyApp::onUpdate(float deltaTime)
 {
 }
-
 ///////////////////////////////////////////////////////////////////////// MAIN
 int main(int argc, char* argv[])
 {
@@ -478,6 +515,7 @@ int main(int argc, char* argv[])
 	engine::App::getInstance()->run();
 
 	engine::App::freeInstance();
+	_CrtDumpMemoryLeaks();
 	exit(EXIT_SUCCESS);
 }
 /////////////////////////////////////////////////////////////////////////// END
