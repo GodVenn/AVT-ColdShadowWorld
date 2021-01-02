@@ -108,6 +108,7 @@ namespace engine
 		if (!window)
 		{
 			glfwTerminate();
+			_CrtDumpMemoryLeaks(); // MEMORY LEAK DETECTION
 			exit(EXIT_FAILURE);
 		}
 		glfwMakeContextCurrent(window);

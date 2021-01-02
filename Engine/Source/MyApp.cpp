@@ -1,6 +1,12 @@
 #include "../Headers/pch.h"
 #include "../Headers/Engine.h"
 /**/
+////////////////////////////////////
+/// MEMORY LEAK DETECTION
+#include <stdlib.h>
+#include <crtdbg.h>
+#define _CRTDBG_MAP_ALLOC
+////////////////////////////////////
 using namespace engine;
 
 class MyApp : public IApp, IUpdatable
@@ -45,6 +51,9 @@ private:
 	/// CAMERA MOVEMENTS
 	const float cameraSpeed = 6.0f;
 	const float cameraSensitivity = 0.05f;
+
+	//Default Particle
+	Particle default_Particle;
 
 	void createTextures();
 	void createMeshes();
@@ -152,6 +161,18 @@ void MyApp::createShaderPrograms()
 	textureShader->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	textureShader->create();
 	ShaderProgramManager::getInstance()->add("SimpleTexture", textureShader);
+
+
+	ShaderProgram* particles = new ShaderProgram();
+	particles->addShader(shaderFolder + "particle_vs.glsl", GL_VERTEX_SHADER);
+	particles->addShader(shaderFolder + "particle_geom.glsl", GL_GEOMETRY_SHADER);
+	particles->addShader(shaderFolder + "particle_fs.glsl", GL_FRAGMENT_SHADER);
+	particles->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	particles->addAttribute(1, engine::COLOR_ATTRIBUTE);
+	particles->addUniform("Texture"),
+	particles->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	particles->create();
+	ShaderProgramManager::getInstance()->add("Particles", particles);
 }
 
 /////////////////////////////////////////////////////////////////////// TEXTUREs
@@ -256,9 +277,21 @@ void MyApp::destroyCallbacks()
 }
 
 ///////////////////////////////////////////////////////////////////// DRAW AND UPDATEs
+float maxTime = 0.1f;
+float timer = maxTime;
 void MyApp::drawSceneGraph()
 {
 	SceneGraphManager::getInstance()->get("Main")->draw();
+	float deltaTime = static_cast<float>(App::getInstance()->deltaTime);
+
+	timer -= deltaTime;
+	if (timer <= 0.0f)
+	{
+		for (int i = 0; i < 1; i++)
+			ParticleSystem::getInstance()->AddParticle(default_Particle);
+		timer = maxTime;
+	}
+	ParticleSystem::getInstance()->OnUpdate(deltaTime, SceneGraphManager::getInstance()->get("Main")->getCamera());
 }
 
 void MyApp::processMovement()
@@ -272,6 +305,13 @@ void MyApp::processMovement()
 
 	if (right || left || forward || backward)
 		camController->setMovement(right, left, forward, backward);
+
+	if (glfwGetKey(win, GLFW_KEY_L) == GLFW_PRESS) //FORCE EMIT PARTICLE
+	{
+		std::cout << "Emit!\n";
+		for (int i = 0; i < 1; i++)
+			ParticleSystem::getInstance()->AddParticle(default_Particle);
+	}
 }
 
 void MyApp::onUpdate(float deltaTime)
