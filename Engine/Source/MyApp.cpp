@@ -51,7 +51,6 @@ private:
 	void setupCamera();
 	void createShaderPrograms();
 	void createSceneGraph();
-	void createSceneGraphHud();
 	void createSimulation();
 
 	void destroyManagers();
@@ -59,7 +58,6 @@ private:
 	void destroyCallbacks();
 
 	void drawSceneGraph();
-	void drawSceneGraphHud();
 	void processMovement();
 };
 
@@ -71,7 +69,6 @@ void MyApp::initApp()
 	setupCamera();
 	createShaderPrograms();
 	createSceneGraph();
-	createSceneGraphHud();
 	createSimulation();
 }
 
@@ -271,26 +268,6 @@ void MyApp::createSceneGraph()
 	
 }
 
-void MyApp::createSceneGraphHud()
-{
-	//HUD
-	SceneGraph* sceneHud = new SceneGraph();
-	SceneGraphManager::getInstance()->add("HUDScene", sceneHud);
-	sceneHud->setCamera(mainCamera); //TODO: Change camera
-	SceneNode* rootHud = sceneHud->getRoot();
-
-	//MESH - TERRAIN
-	Mesh* m_Terrain = MeshManager::getInstance()->get("Terrain");
-	SceneNode* terrainHud = rootHud->createNode();
-	terrainHud->setMesh(m_Terrain);
-	terrainHud->setMatrix(MatFactory::createTranslationMat4(Vec3(5, 0, 0)));
-
-	//SHADER -TERRAIN
-	ShaderProgram* s_Hud = ShaderProgramManager::getInstance()->get("Hud");
-	rootHud->setShaderProgram(s_Hud);
-
-
-}
 ///////////////////////////////////////////////////////////////////// SIMULATION
 void MyApp::createSimulation()
 {
@@ -321,11 +298,10 @@ void MyApp::destroyCallbacks()
 ///////////////////////////////////////////////////////////////////// DRAW AND UPDATEs
 void MyApp::drawSceneGraph()
 {
-	SceneGraph* scene = SceneGraphManager::getInstance()->get("HUDScene");
+	SceneGraph* scene = SceneGraphManager::getInstance()->get("Main");
 	scene->draw();
 	
-	
-	
+
 	//Obtain Render Target Texture for drawing the HUD
 	RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
 	//Update shader in order to draw HUD
@@ -345,18 +321,6 @@ void MyApp::drawSceneGraph()
 
 }
 
-void MyApp::drawSceneGraphHud()
-{
-	RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
-	hud.clearColor(.5f, .5f, .5f, 1.f);
-	hud.bindFramebuffer();
-	//DRAW HUD
-	SceneGraphManager::getInstance()->get("HUDScene")->draw();
-	hud.unbindFramebuffer();
-	// RESIZE VIEWPORT
-	glClearColor(0, 0, 0, 1);
-	hud.renderQuad(ShaderProgramManager::getInstance()->get("QuadTexture"), "screenTexture");
-}
 
 void MyApp::processMovement()
 {
