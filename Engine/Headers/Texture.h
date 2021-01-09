@@ -7,6 +7,7 @@ namespace engine
 	///////////////////////////////////////////////////////////////////////
 	class Texture;
 	class Texture2D;
+	class RenderTargetTexture;
 	struct TextureInfo;
 
 	class Sampler;
@@ -18,6 +19,8 @@ namespace engine
 	class LinearMipmapLinearSampler;
 	class LinearAnisotropicSampler;
 	class MaxAnisotropicSampler;
+
+	class Quad2D;
 	/////////////////////////////////////////////////////////////////////// TextureInfo
 	struct TextureInfo
 	{
@@ -52,6 +55,46 @@ namespace engine
 		void load(const std::string& filename);
 	};
 
+	class Quad2D
+	{
+	public:
+		static const GLuint VERTICES = 0;
+		static const GLuint TEXCOORDS = 1;
+
+		Quad2D();
+		~Quad2D();
+
+		void draw();
+
+	private:
+		GLuint _vao, _vbo;
+		GLfloat _vertices[24];
+	};
+
+	class RenderTargetTexture : public Texture
+	{
+	public:
+		RenderTargetTexture();
+		~RenderTargetTexture();
+
+		virtual void bind() override;
+		virtual void unbind() override;
+
+		void create(const int width, const int height);
+		void clearColor(const GLfloat r, const GLfloat g, const GLfloat b, const GLfloat a);
+
+
+		void bindFramebuffer();
+		void unbindFramebuffer();
+
+		void renderQuad(ShaderProgram* shader, const std::string& textureUniform);
+
+	private:
+		Quad2D* _quad;
+		GLuint _framebuffer, _rboDepthStencil;
+		GLfloat _r, _g, _b, _a;
+		int _width, _height;
+	};
 	/////////////////////////////////////////////////////////////////////// SAMPLERs
 	class Sampler
 	{

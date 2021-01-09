@@ -51,6 +51,7 @@ private:
 	void setupCamera();
 	void createShaderPrograms();
 	void createSceneGraph();
+	void createSceneGraphHud();
 	void createSimulation();
 
 	void destroyManagers();
@@ -58,6 +59,7 @@ private:
 	void destroyCallbacks();
 
 	void drawSceneGraph();
+	void drawSceneGraphHud();
 	void processMovement();
 };
 
@@ -93,6 +95,8 @@ void MyApp::window_size_callback(GLFWwindow* win, int winx, int winy)
 
 	aspect = static_cast<float>(winX) / static_cast<float>(winY);
 	mainCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
+
+
 }
 
 void MyApp::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -152,6 +156,35 @@ void MyApp::createShaderPrograms()
 	textureShader->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	textureShader->create();
 	ShaderProgramManager::getInstance()->add("SimpleTexture", textureShader);
+
+
+	ShaderProgram* quadTexture = new ShaderProgram();
+	quadTexture->addShader(shaderFolder + "textureFBO_vs.glsl", GL_VERTEX_SHADER);
+	quadTexture->addShader(shaderFolder + "textureFBO_fs.glsl", GL_FRAGMENT_SHADER);
+	quadTexture->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	quadTexture->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
+	quadTexture->addUniform("screenTexture");
+	quadTexture->addUniform("translationVector");
+	quadTexture->addUniform("scaleMultiplier");
+	quadTexture->create();
+	quadTexture->bind();
+	quadTexture->setUniform2f("translationVector", Vec2(0.65f, -0.5f));
+	quadTexture->setUniform2f("scaleMultiplier", Vec2(0.3f, 0.3f));
+	quadTexture->setUniform1i("screenTexture", 1);
+	quadTexture->unbind();
+	ShaderProgramManager::getInstance()->add("QuadTexture", quadTexture);
+
+	ShaderProgram* hud = new ShaderProgram();
+	hud->addShader(shaderFolder + "hud_vs.glsl", GL_VERTEX_SHADER);
+	hud->addShader(shaderFolder + "hud_fs.glsl", GL_FRAGMENT_SHADER);
+	hud->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	hud->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
+	hud->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
+	hud->addUniform(engine::MODEL_MATRIX);
+	hud->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	hud->create();
+	ShaderProgramManager::getInstance()->add("Hud", hud);
+
 }
 
 /////////////////////////////////////////////////////////////////////// TEXTUREs
@@ -162,6 +195,11 @@ void MyApp::createTextures()
 	Texture2D* earth = new Texture2D();
 	earth->load(texturePath);
 	TextureManager::getInstance()->add("EarthHeightMap", earth);
+
+	//RENDER TARGET TEXTURE
+	RenderTargetTexture* rtt = new RenderTargetTexture();
+	rtt->create(App::getInstance()->windowWidth, App::getInstance()->windowHeight);
+	TextureManager::getInstance()->add("RTT", (RenderTargetTexture*)rtt);
 }
 
 /////////////////////////////////////////////////////////////////////// MESHes
@@ -227,6 +265,29 @@ void MyApp::createSceneGraph()
 	terrainNode->setShaderProgram(terrainShader);
 
 	terrainNode->setMatrix(MatFactory::createTranslationMat4(Vec3(5, 0, 0)));
+
+	
+}
+
+void MyApp::createSceneGraphHud()
+{
+	//HUD
+	SceneGraph* sceneHud = new SceneGraph();
+	SceneGraphManager::getInstance()->add("HUDScene", sceneHud);
+	sceneHud->setCamera(mainCamera); //TODO: Change camera
+	SceneNode* rootHud = sceneHud->getRoot();
+
+	//MESH - TERRAIN
+	Mesh* m_Terrain = MeshManager::getInstance()->get("Terrain");
+	SceneNode* terrainHud = rootHud->createNode();
+	terrainHud->setMesh(m_Terrain);
+	terrainHud->setMatrix(MatFactory::createTranslationMat4(Vec3(5, 0, 0)));
+
+	//SHADER -TERRAIN
+	ShaderProgram* s_Hud = ShaderProgramManager::getInstance()->get("Hud");
+	rootHud->setShaderProgram(s_Hud);
+
+
 }
 ///////////////////////////////////////////////////////////////////// SIMULATION
 void MyApp::createSimulation()
@@ -258,7 +319,40 @@ void MyApp::destroyCallbacks()
 ///////////////////////////////////////////////////////////////////// DRAW AND UPDATEs
 void MyApp::drawSceneGraph()
 {
-	SceneGraphManager::getInstance()->get("Main")->draw();
+	auto scene = SceneGraphManager::getInstance()->get("Main");
+	scene->draw();
+	
+	
+	////Obtain Render Target Texture for drawing the HUD
+	//RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
+	////Update shader in order to draw HUD
+	//ShaderProgram* s_Hud = ShaderProgramManager::getInstance()->get("Hud");
+	//scene->getRoot()->setShaderProgram(s_Hud);
+	////Draw HUD
+	//hud.clearColor(.5f, .5f, .5f, 1.f);
+	//hud.bindFramebuffer();
+	//scene->draw();
+	//hud.unbindFramebuffer();
+
+	////Render HUD into the main scene
+	//hud.renderQuad(ShaderProgramManager::getInstance()->get("QuadTexture"), "screenTexture");
+
+	////Reset shader to the original one
+	scene->getRoot()->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
+
+}
+
+void MyApp::drawSceneGraphHud()
+{
+	RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
+	hud.clearColor(.5f, .5f, .5f, 1.f);
+	hud.bindFramebuffer();
+	//DRAW HUD
+	SceneGraphManager::getInstance()->get("HUDScene")->draw();
+	hud.unbindFramebuffer();
+	// RESIZE VIEWPORT
+	glClearColor(0, 0, 0, 1);
+	hud.renderQuad(ShaderProgramManager::getInstance()->get("QuadTexture"), "screenTexture");
 }
 
 void MyApp::processMovement()

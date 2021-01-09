@@ -78,6 +78,88 @@ namespace engine
 		stbi_image_free(data);
 
 	}
+	/////////////////////////////////////////////////////////////////////// RENDER TARGET TEXTURE
+	RenderTargetTexture::RenderTargetTexture()
+		: _framebuffer(-1), _rboDepthStencil(-1), _r(0.f), _g(0.f), _b(0.f), _a(1.f), _width(0), _height(0)
+	{
+		_quad = new Quad2D();
+	}
+	RenderTargetTexture::~RenderTargetTexture()
+	{
+		glDeleteFramebuffers(1, &_framebuffer);
+		glDeleteTextures(1, &id);
+		glDeleteTextures(1, &_rboDepthStencil);
+
+		delete _quad;
+	}
+	void RenderTargetTexture::bind()
+	{
+		glBindTexture(GL_TEXTURE_2D, id);
+	}
+	void RenderTargetTexture::unbind()
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	void RenderTargetTexture::create(const int width, const int height)
+	{
+		_width = width;
+		_height = height;
+		glGenFramebuffers(1, &_framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+
+		// Create color texture
+		glCreateTextures(GL_TEXTURE_2D, 1, &id);
+		glBindTexture(GL_TEXTURE_2D, id);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		// Attach colorTexture with the framebuffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
+
+		// Create depth and stencil texture
+		glCreateTextures(GL_TEXTURE_2D, 1, &_rboDepthStencil);
+		glBindTexture(GL_TEXTURE_2D, _rboDepthStencil);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, width, height);
+
+		// Attach depth and stencil texture with the framebuffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, _rboDepthStencil, 0);
+
+		ASSERT((glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE), "Framebuffer is not complete!");
+
+
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+	void RenderTargetTexture::clearColor(const GLfloat r, const GLfloat g, const GLfloat b, const GLfloat a)
+	{
+		_r = r, _g = g, _b = b, _a = a;
+	}
+	void RenderTargetTexture::bindFramebuffer()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+		glViewport(0, 0, _width, _height);
+		glClearColor(_r, _g, _b, _a);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+	void RenderTargetTexture::unbindFramebuffer()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+	void RenderTargetTexture::renderQuad(ShaderProgram* shader, const std::string& textureUniform)
+	{
+		shader->bind();
+		shader->setUniform1i(textureUniform, 0);
+		glActiveTexture(GL_TEXTURE0);
+		bind();
+
+		glDisable(GL_DEPTH_TEST);
+		_quad->draw();
+		glEnable(GL_DEPTH_TEST);
+
+		unbind();
+	}
+
 	/////////////////////////////////////////////////////////////////////// SAMPLERs
 	Sampler::Sampler()
 	{
@@ -152,5 +234,40 @@ namespace engine
 		/** /
 		std::cout << "Sampler set to maximum ansiotropy: " << max << std::endl;
 		/**/
+	}
+	/////////////////////////////////////////////////////////////////////// Quad2D
+	const GLfloat data[] = {
+	1.f, -1.0f, 1.f, 0.f,
+	1.f,  1.f,  1.f, 1.f,
+   -1.f,  -1.f,  0.f, 0.f,
+   -1.f, 1.f,  0.f, 1.f
+	};
+	Quad2D::Quad2D()
+	{
+		// Fill the data
+		memcpy(_vertices, data, sizeof(data));
+
+		// Vertex creation
+		glGenVertexArrays(1, &_vao);
+		glGenBuffers(1, &_vbo);
+		glBindVertexArray(_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(_vertices), &_vertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(VERTICES);
+		glVertexAttribPointer(VERTICES, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)0);
+		glEnableVertexAttribArray(TEXCOORDS);
+		glVertexAttribPointer(TEXCOORDS, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+		glBindVertexArray(0);
+	}
+	Quad2D::~Quad2D()
+	{
+		glDeleteBuffers(1, &_vao);
+		glDeleteVertexArrays(1, &_vao);
+	}
+	void Quad2D::draw()
+	{
+		glBindVertexArray(_vao);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glBindVertexArray(0);
 	}
 }

@@ -248,8 +248,12 @@
     <None Include="Shaders\frame_vs.glsl" />
     <None Include="Shaders\heightMap_fs.glsl" />
     <None Include="Shaders\heightMap_vs.glsl" />
+    <None Include="Shaders\hud_fs.glsl" />
+    <None Include="Shaders\hud_vs.glsl" />
     <None Include="Shaders\Shader_f.glsl" />
     <None Include="Shaders\Shader_v.glsl" />
+    <None Include="Shaders\textureFBO_fs.glsl" />
+    <None Include="Shaders\textureFBO_vs.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
