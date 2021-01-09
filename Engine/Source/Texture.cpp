@@ -108,7 +108,7 @@ namespace engine
 		glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 
 		// Create color texture
-		glCreateTextures(GL_TEXTURE_2D, 1, &id);
+		glGenTextures(1, &id);
 		glBindTexture(GL_TEXTURE_2D, id);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -118,7 +118,7 @@ namespace engine
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
 
 		// Create depth and stencil texture
-		glCreateTextures(GL_TEXTURE_2D, 1, &_rboDepthStencil);
+		glGenTextures(1, &_rboDepthStencil);
 		glBindTexture(GL_TEXTURE_2D, _rboDepthStencil);
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, width, height);
 
@@ -151,13 +151,13 @@ namespace engine
 		shader->bind();
 		shader->setUniform1i(textureUniform, 0);
 		glActiveTexture(GL_TEXTURE0);
-		bind();
+		glBindTexture(GL_TEXTURE_2D, id);
 
 		glDisable(GL_DEPTH_TEST);
 		_quad->draw();
 		glEnable(GL_DEPTH_TEST);
 
-		unbind();
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 	/////////////////////////////////////////////////////////////////////// SAMPLERs

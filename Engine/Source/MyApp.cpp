@@ -71,6 +71,7 @@ void MyApp::initApp()
 	setupCamera();
 	createShaderPrograms();
 	createSceneGraph();
+	createSceneGraphHud();
 	createSimulation();
 }
 
@@ -82,6 +83,7 @@ void MyApp::displayCallback(GLFWwindow* win, float deltaTime)
 
 void MyApp::window_close_callback(GLFWwindow* win)
 {
+	delete camController;
 	destroyCallbacks();
 	destroyManagers();
 	destroySimulation();
@@ -170,7 +172,7 @@ void MyApp::createShaderPrograms()
 	quadTexture->bind();
 	quadTexture->setUniform2f("translationVector", Vec2(0.65f, -0.5f));
 	quadTexture->setUniform2f("scaleMultiplier", Vec2(0.3f, 0.3f));
-	quadTexture->setUniform1i("screenTexture", 1);
+	quadTexture->setUniform1i("screenTexture", 0);
 	quadTexture->unbind();
 	ShaderProgramManager::getInstance()->add("QuadTexture", quadTexture);
 
@@ -229,17 +231,17 @@ void MyApp::setupCamera()
 {
 	glfwSetInputMode(App::getInstance()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	float winY = static_cast<float>(App::getInstance()->windowHeight);
-	float winX = static_cast<float>(App::getInstance()->windowWidth);
+	float height = static_cast<float>(App::getInstance()->windowHeight);
+	float width = static_cast<float>(App::getInstance()->windowWidth);
 
-	aspect = winX / winY;
+	aspect = width / height;
 
 	mainCamera = new Camera(initialEye, initialCenter, initialUp, UBO_CAMERA);
 	mainCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
 
 	float initialYaw = 0.0f;
 	float initialPitch = 0.0f;
-	camController = new CameraController(*mainCamera, winY, winX, initialYaw, initialPitch);
+	camController = new CameraController(*mainCamera, height, width, initialYaw, initialPitch);
 
 }
 /////////////////////////////////////////////////////////////////////// SCENE
@@ -319,25 +321,26 @@ void MyApp::destroyCallbacks()
 ///////////////////////////////////////////////////////////////////// DRAW AND UPDATEs
 void MyApp::drawSceneGraph()
 {
-	auto scene = SceneGraphManager::getInstance()->get("Main");
+	SceneGraph* scene = SceneGraphManager::getInstance()->get("HUDScene");
 	scene->draw();
 	
 	
-	////Obtain Render Target Texture for drawing the HUD
-	//RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
-	////Update shader in order to draw HUD
-	//ShaderProgram* s_Hud = ShaderProgramManager::getInstance()->get("Hud");
-	//scene->getRoot()->setShaderProgram(s_Hud);
-	////Draw HUD
-	//hud.clearColor(.5f, .5f, .5f, 1.f);
-	//hud.bindFramebuffer();
-	//scene->draw();
-	//hud.unbindFramebuffer();
+	
+	//Obtain Render Target Texture for drawing the HUD
+	RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
+	//Update shader in order to draw HUD
+	ShaderProgram* s_Hud = ShaderProgramManager::getInstance()->get("Hud");
+	scene->getRoot()->setShaderProgram(s_Hud);
+	//Draw HUD
+	hud.clearColor(0.8f, 1.f, 0.5f, 1.f);
+	hud.bindFramebuffer();
+	scene->draw();
+	hud.unbindFramebuffer();
+	//Render HUD into the main scene
+	glClearColor(0.5f, 0.5f, 0.5f, 1.f);
+	hud.renderQuad(ShaderProgramManager::getInstance()->get("QuadTexture"), "screenTexture");
 
-	////Render HUD into the main scene
-	//hud.renderQuad(ShaderProgramManager::getInstance()->get("QuadTexture"), "screenTexture");
-
-	////Reset shader to the original one
+	//Reset shader to the original one
 	scene->getRoot()->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
 
 }

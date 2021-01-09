@@ -28,7 +28,7 @@ namespace engine
 		setupGLEW();
 		setupOpenGL();
 
-		setupErrorCallback();
+		//setupErrorCallback();
 		glApp->initApp();
 	}
 	/////////////////////////////////////////////////////////////////////// RUN
