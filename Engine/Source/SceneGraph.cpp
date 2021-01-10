@@ -6,13 +6,12 @@ namespace engine
 	SceneGraph::SceneGraph()
 	{
 		this->root = new SceneNode();
-		this->camera = new Camera();
+		this->camera = nullptr;
 	}
 
 	SceneGraph::~SceneGraph()
 	{
 		delete this->root;
-		delete this->camera;
 	}
 
 	SceneNode* SceneGraph::createNode()

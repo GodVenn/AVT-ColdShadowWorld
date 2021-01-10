@@ -1,6 +1,6 @@
 #include "../Headers/pch.h"
 #include "../Headers/Follow2DCameraController.h"
-
+#include "../Headers/Input.h"
 namespace engine
 {
 	Follow2DCameraController::Follow2DCameraController(Camera* camera, CameraController* followController, float verticalOffset)
@@ -13,12 +13,12 @@ namespace engine
 	}
 
 	void Follow2DCameraController::update(float deltaTime)
+	{		
+		_camera->eye = { _followController->cam->eye.x, _verticalOffset,  _followController->cam->eye.z };
+		_camera->center = _followController->cam->center;
+	}
+	void Follow2DCameraController::setVerticalOffset(const float offset)
 	{
-		//Update camera position
-		auto pos = _followController->cam->eye;
-		_camera->eye = { pos.x, pos.y + _verticalOffset, pos.z };
-		//Update looking direction
-		_camera->center = pos;
-
+		_verticalOffset = offset;
 	}
 }
