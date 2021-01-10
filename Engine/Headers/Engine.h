@@ -11,6 +11,7 @@
 #include "ShaderProgramManager.h"
 #include "Simulation.h"
 #include "CameraController.h"
+#include "Follow2DCameraController.h"
 #include "TextureManager.h"
 #include "SamplerManager.h"
 #include "TerrainBuilder.h"

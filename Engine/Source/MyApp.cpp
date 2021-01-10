@@ -42,6 +42,10 @@ private:
 	float left = 0.f;*/
 	float aspect = 0.f;
 
+	//HUD CAMERA SETUP VALUES
+	Camera* hudCamera = nullptr;
+	Follow2DCameraController* hudCameraController = nullptr;
+
 	/// CAMERA MOVEMENTS
 	const float cameraSpeed = 6.0f;
 	const float cameraSensitivity = 0.05f;
@@ -240,6 +244,11 @@ void MyApp::setupCamera()
 	float initialPitch = 0.0f;
 	camController = new CameraController(*mainCamera, height, width, initialYaw, initialPitch);
 
+	hudCamera = new Camera({initialEye.x, initialEye.y + 10.0f, initialEye.z}, initialEye, initialUp, UBO_CAMERA); //TODO: remove magic number
+	float zoomLevel = 8.0f;
+	hudCamera->setOrthographicProjectionMatrix(aspect * -zoomLevel, aspect * zoomLevel, -zoomLevel, zoomLevel, near, far);
+	hudCameraController = new Follow2DCameraController(hudCamera, camController);
+
 }
 /////////////////////////////////////////////////////////////////////// SCENE
 
@@ -256,15 +265,14 @@ void MyApp::createSceneGraph()
 	testCube->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
 
 	// Test terrain
-	SceneNode* terrainNode = scene->getRoot()->createNode();
-	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
-	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("SimpleTexture");
-	TextureInfo* texInfo = new TextureInfo(GL_TEXTURE0, 0, "Texture", TextureManager::getInstance()->get("EarthHeightMap"));
-	terrainNode->addTextureInfo(texInfo);
-	terrainNode->setShaderProgram(terrainShader);
+	//SceneNode* terrainNode = scene->getRoot()->createNode();
+	//terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
+	//ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("SimpleTexture");
+	//TextureInfo* texInfo = new TextureInfo(GL_TEXTURE0, 0, "Texture", TextureManager::getInstance()->get("EarthHeightMap"));
+	//terrainNode->addTextureInfo(texInfo);
+	//terrainNode->setShaderProgram(terrainShader);
 
-	terrainNode->setMatrix(MatFactory::createTranslationMat4(Vec3(5, 0, 0)));
-
+	//terrainNode->setMatrix(MatFactory::createTranslationMat4(Vec3(5, 0, 0)));
 	
 }
 
@@ -301,7 +309,11 @@ void MyApp::drawSceneGraph()
 	SceneGraph* scene = SceneGraphManager::getInstance()->get("Main");
 	scene->draw();
 	
+	Mat4 mainViewMatrix = mainCamera->getViewMatrix();
+	Mat4 mainProjMatrix = mainCamera->getProjMatrix();
 
+	mainCamera->setViewMatrix(hudCamera->getViewMatrix());
+	mainCamera->setProjectionMatrix(hudCamera->getProjMatrix());
 	//Obtain Render Target Texture for drawing the HUD
 	RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
 	//Update shader in order to draw HUD
@@ -317,10 +329,12 @@ void MyApp::drawSceneGraph()
 	hud.renderQuad(ShaderProgramManager::getInstance()->get("QuadTexture"), "screenTexture");
 
 	//Reset shader to the original one
+	mainCamera->setViewMatrix(mainViewMatrix);
+	mainCamera->setProjectionMatrix(mainProjMatrix);
 	scene->getRoot()->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
 
-}
 
+}
 
 void MyApp::processMovement()
 {
@@ -339,6 +353,7 @@ void MyApp::onUpdate(float deltaTime)
 {
 	processMovement();
 	camController->update(deltaTime);
+	hudCameraController->update(deltaTime);
 }
 
 ///////////////////////////////////////////////////////////////////////// MAIN
