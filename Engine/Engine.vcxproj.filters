@@ -255,5 +255,7 @@
     <None Include="Shaders\textureFBO_vs.glsl" />
     <None Include="Shaders\flatTexture_vs.glsl" />
     <None Include="Shaders\flatTexture_fs.glsl" />
+    <None Include="Shaders\goochShading_vs.glsl" />
+    <None Include="Shaders\goochShading_fs.glsl" />
   </ItemGroup>
 </Project>

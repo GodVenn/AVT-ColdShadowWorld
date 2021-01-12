@@ -51,6 +51,10 @@ private:
 	const float cameraSpeed = 6.0f;
 	const float cameraSensitivity = 0.05f;
 
+	// Gooch and Shadow
+	Vec3 LightPos = Vec3(3.478f, 1.739f, -1.702f); 
+	float silhouetteOffset = 0.015f;
+
 	void createTextures();
 	void createMeshes();
 	void setupCamera();
@@ -151,18 +155,6 @@ void MyApp::createShaderPrograms()
 	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	penrose->create();
 	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
-	/** /
-	ShaderProgram* penrose = new ShaderProgram();
-	penrose->addShader(shaderFolder + "hud_vs.glsl", GL_VERTEX_SHADER);
-	penrose->addShader(shaderFolder + "hud_fs.glsl", GL_FRAGMENT_SHADER);
-	penrose->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
-	penrose->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
-	penrose->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
-	penrose->addUniform(engine::MODEL_MATRIX);
-	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
-	penrose->create();
-	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
-	/**/
 
 	ShaderProgram* textureShader = new ShaderProgram();
 	textureShader->addShader(shaderFolder + "heightMap_vs.glsl", GL_VERTEX_SHADER);
@@ -203,6 +195,32 @@ void MyApp::createShaderPrograms()
 	hud->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	hud->create();
 	ShaderProgramManager::getInstance()->add("Hud", hud);
+
+	ShaderProgram* gooch = new ShaderProgram();
+	gooch->addShader(shaderFolder + "goochShading_vs.glsl", GL_VERTEX_SHADER);
+	gooch->addShader(shaderFolder + "goochShading_fs.glsl", GL_FRAGMENT_SHADER);
+	gooch->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	gooch->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
+	gooch->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
+	gooch->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	gooch->addUniform(engine::MODEL_MATRIX);
+	gooch->addUniform("LightPosition");
+	gooch->addUniform("SurfaceColor");
+	gooch->addUniform("AmbientWarm");
+	gooch->addUniform("AmbientCool");
+	gooch->addUniform("DiffuseCool");
+	gooch->addUniform("DiffuseWarm");
+	gooch->addUniform("SpecularPower");
+	gooch->create();
+	gooch->bind();
+	gooch->setUniform3f("SurfaceColor", Vec3(0.75f, 0.75f, 0.75f));
+	gooch->setUniform3f("AmbientWarm", Vec3(0.6f, 0.f, 0));
+	gooch->setUniform3f("AmbientCool", Vec3(0, 0, 0.6f));
+	gooch->setUniform1f("DiffuseCool", 0.45f);
+	gooch->setUniform1f("DiffuseWarm", 0.45f);
+	gooch->setUniform1f("SpecularPower", 45.f);
+	gooch->setUniform3f("LightPosition", LightPos);
+	ShaderProgramManager::getInstance()->add("Gooch", gooch);
 
 }
 
@@ -300,9 +318,11 @@ void MyApp::createSceneGraph()
 	/**/
 	SceneNode* terrainNode = scene->getRoot()->createNode();
 	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
-	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("SimpleTexture");
-	TextureInfo* texInfo = new TextureInfo(GL_TEXTURE0, 0, "Texture", TextureManager::getInstance()->get("EarthHeightMap"));
-	terrainNode->addTextureInfo(texInfo);
+	// Gooch Shader
+	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("Gooch");
+	// Old terrain texture
+	//TextureInfo* texInfo = new TextureInfo(GL_TEXTURE0, 0, "Texture", TextureManager::getInstance()->get("EarthHeightMap"));
+	//terrainNode->addTextureInfo(texInfo);
 	terrainNode->setShaderProgram(terrainShader);
 
 	terrainNode->setMatrix(MatFactory::createTranslationMat4(Vec3(5, 0, 0)));
@@ -390,7 +410,7 @@ void MyApp::renderHUD(RenderTargetTexture& rttHud)
 	Texture2D& arrow = *(Texture2D*)TextureManager::getInstance()->get("Arrow");
 	quadTexture_s->bind();
 	quadTexture_s->setUniform1f("interpolationFactor", 1);
-	renderQuad(quadTexture_s, &arrow, "arrow");
+	renderQuad(quadTexture_s, &arrow, "screenTexture");
 	// Reset Stencil
 	glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	glStencilMask(0xFF);
