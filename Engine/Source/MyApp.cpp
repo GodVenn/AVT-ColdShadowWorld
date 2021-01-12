@@ -22,10 +22,9 @@ public:
 private:
 
 	/// CALLBACKs
-	DisableDepthCallback* callback = nullptr;
+
 	/// BINDING POINTs
 	const int UBO_CAMERA = 0;
-	const int UBO_CAMERA1 = 1;
 
 	/// CAMERA SETUP VALUES
 	Camera* mainCamera = nullptr;
@@ -35,13 +34,10 @@ private:
 	const Vec3 initialUp = Vec3(0.0f, 1.0f, 0.0f);
 	const float fovThreshold = 45.f;
 	float fov = 45.f;
-	//float camFactor = 0.0055f;
-	float near = 0.1f;
-	float far = 100.f;
-	/*float top = 0.f;
-	float botton = 0.f;
-	float right = 0.f;
-	float left = 0.f;*/
+
+	const float near = 0.1f;
+	const float far = 100.f;
+
 	float aspect = 0.f;
 
 	//HUD CAMERA SETUP VALUES
@@ -102,10 +98,10 @@ void MyApp::window_close_callback(GLFWwindow* win)
 void MyApp::window_size_callback(GLFWwindow* win, int winx, int winy)
 {
 	glViewport(0, 0, winx, winy);
-	int winX = App::getInstance()->windowWidth = winx;
-	int winY = App::getInstance()->windowHeight = winy;
+	int width = App::getInstance()->windowWidth = winx;
+	int height = App::getInstance()->windowHeight = winy;
 
-	aspect = static_cast<float>(winX) / static_cast<float>(winY);
+	aspect = static_cast<float>(width) / static_cast<float>(height);
 	mainCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
 
 
@@ -145,7 +141,7 @@ void MyApp::key_callback(GLFWwindow* win, int key, int scancode, int action, int
 void MyApp::createShaderPrograms()
 {
 	const std::string shaderFolder = "Shaders\\";
-	/** /
+	/**/
 	ShaderProgram* penrose = new ShaderProgram();
 	penrose->addShader(shaderFolder + "cube_vs.glsl", GL_VERTEX_SHADER);
 	penrose->addShader(shaderFolder + "cube_fs.glsl", GL_FRAGMENT_SHADER);
@@ -156,7 +152,7 @@ void MyApp::createShaderPrograms()
 	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	penrose->create();
 	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
-	/**/
+	/** /
 	ShaderProgram* penrose = new ShaderProgram();
 	penrose->addShader(shaderFolder + "hud_vs.glsl", GL_VERTEX_SHADER);
 	penrose->addShader(shaderFolder + "hud_fs.glsl", GL_FRAGMENT_SHADER);
@@ -167,7 +163,7 @@ void MyApp::createShaderPrograms()
 	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	penrose->create();
 	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
-
+	/**/
 
 	ShaderProgram* textureShader = new ShaderProgram();
 	textureShader->addShader(shaderFolder + "heightMap_vs.glsl", GL_VERTEX_SHADER);
@@ -206,7 +202,7 @@ void MyApp::createShaderPrograms()
 	hud->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
 	hud->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
 	hud->addUniform(engine::MODEL_MATRIX);
-	hud->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA1);
+	hud->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	hud->create();
 	ShaderProgramManager::getInstance()->add("Hud", hud);
 
@@ -267,14 +263,14 @@ void MyApp::setupCamera()
 
 	aspect = width / height;
 
-	mainCamera = new Camera(initialEye, initialCenter, initialUp, UBO_CAMERA);
+	mainCamera = new Camera(initialEye, initialCenter, initialUp);
 	mainCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
 
 	float initialYaw = -90.0f;
 	float initialPitch = 0.0f;
 	camController = new CameraController(*mainCamera, height, width, initialYaw, initialPitch);
 
-	hudCamera = new Camera({initialEye.x, initialEye.y + 20, initialEye.z}, initialEye, initialUp, UBO_CAMERA1); //TODO: remove magic number
+	hudCamera = new Camera({initialEye.x, initialEye.y + 20, initialEye.z}, initialEye, initialUp); //TODO: remove magic number
 	float zoomLevel = 15.0f;
 	//hudCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
 	hudCamera->setOrthographicProjectionMatrix(aspect * -zoomLevel, aspect * zoomLevel, -zoomLevel, zoomLevel, near, far);
@@ -287,7 +283,7 @@ void MyApp::createSceneGraph()
 	SceneGraph* scene = new SceneGraph();
 	SceneGraphManager::getInstance()->add("Main", scene);
 	scene->setCamera(mainCamera);
-	callback = new DisableDepthCallback();
+	//callback = new DisableDepthCallback();
 
 	// Test Cube
 	SceneNode* testCube = scene->getRoot();
@@ -295,7 +291,7 @@ void MyApp::createSceneGraph()
 	testCube->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
 
 	// Test terrain
-	/** /
+	/**/
 	SceneNode* terrainNode = scene->getRoot()->createNode();
 	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
 	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("SimpleTexture");
@@ -333,7 +329,7 @@ void MyApp::destroySimulation()
 
 void MyApp::destroyCallbacks()
 {
-	delete callback;
+	//delete callback;
 }
 
 void MyApp::destroyCameras()
@@ -386,9 +382,7 @@ void MyApp::drawSceneGraph()
 	scene->setCamera(hudCamera);
 	// Obtain Render Target Texture for drawing the HUD
 	RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
-	// Update shader in order to draw HUD
-	ShaderProgram* s_Hud = ShaderProgramManager::getInstance()->get("Hud");
-	scene->getRoot()->setShaderProgram(s_Hud);
+
 	// Draw HUD
 	hud.clearColor(0.5f, 0.5f, 0.5f, 1.f);
 	hud.bindFramebuffer();
@@ -400,7 +394,6 @@ void MyApp::drawSceneGraph()
 	// Reset Viewport size
 	glViewport(0, 0, App::getInstance()->windowWidth, App::getInstance()->windowHeight);
 	// Reset shader to the original one
-	scene->getRoot()->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
 	scene->setCamera(mainCamera);
 
 }

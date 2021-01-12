@@ -27,6 +27,7 @@ namespace engine
 
 		const Mat4 getViewMatrix();
 		inline const Mat4 getProjMatrix() { return projMatrix; }
+		inline GLuint getBindingPoint() const { return VboId; }
 
 	private:
 		Mat4 viewMatrix;
