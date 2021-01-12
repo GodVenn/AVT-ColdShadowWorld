@@ -3,7 +3,6 @@
 
 namespace engine
 {
-	
 	/////////////////////////////////////////////////////////////////////// DisableDepthCallback
 	class DisableDepthCallback : public ISceneNodeCallBack
 	{

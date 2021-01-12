@@ -92,6 +92,11 @@ namespace engine
 		this->viewMatrix = MatFactory::createViewMatrix(eye, center, up);
 	}
 
+	void Camera::setViewMatrix(const Mat4& viewMatrix)
+	{
+		this->viewMatrix = viewMatrix;
+	}
+
 	void Camera::setOrthographicProjectionMatrix(const float left, const float right, const float bottom, const float top, const float near, const float far)
 	{
 		this->projMatrix = MatFactory::createOrthographicProjectionMatrix(left, right, bottom, top, near, far);
@@ -100,6 +105,11 @@ namespace engine
 	void Camera::setPerspectiveProjectionMatrix(const float fovy, const float ratio, const float near, const float far)
 	{
 		this->projMatrix = MatFactory::createPerspectiveProjectionMatrix(fovy, ratio, near, far);
+	}
+
+	void Camera::setProjectionMatrix(const Mat4& projectionMatrix)
+	{
+		this->projMatrix = projectionMatrix;
 	}
 
 	const Mat4 Camera::getViewMatrix()

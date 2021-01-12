@@ -17,10 +17,11 @@ public:
 
 	virtual void onUpdate(float deltaTime) override;
 
+
+
 private:
 
 	/// CALLBACKs
-	DisableDepthCallback* callback = nullptr;
 
 	/// BINDING POINTs
 	const int UBO_CAMERA = 0;
@@ -33,14 +34,18 @@ private:
 	const Vec3 initialUp = Vec3(0.0f, 1.0f, 0.0f);
 	const float fovThreshold = 45.f;
 	float fov = 45.f;
-	//float camFactor = 0.0055f;
-	float near = 0.1f;
-	float far = 100.f;
-	/*float top = 0.f;
-	float botton = 0.f;
-	float right = 0.f;
-	float left = 0.f;*/
+
+	const float near = 0.1f;
+	const float far = 100.f;
+
 	float aspect = 0.f;
+
+	//HUD CAMERA SETUP VALUES
+	Camera* hudCamera = nullptr;
+	Follow2DCameraController* hudCameraController = nullptr;
+
+	// Quad2D;
+	Quad2D* quad = nullptr;
 
 	/// CAMERA MOVEMENTS
 	const float cameraSpeed = 6.0f;
@@ -56,9 +61,13 @@ private:
 	void destroyManagers();
 	void destroySimulation();
 	void destroyCallbacks();
+	void destroyCameras();
 
 	void drawSceneGraph();
 	void processMovement();
+	// HUD
+	void renderQuad(ShaderProgram* shader, Texture* texture, const std::string& textureUniform);
+	void renderHUD(RenderTargetTexture& rttHud);
 };
 
 /////////////////////////////////////////////////////////////////////// CALLBACKs
@@ -80,6 +89,7 @@ void MyApp::displayCallback(GLFWwindow* win, float deltaTime)
 
 void MyApp::window_close_callback(GLFWwindow* win)
 {
+	destroyCameras();
 	destroyCallbacks();
 	destroyManagers();
 	destroySimulation();
@@ -88,11 +98,13 @@ void MyApp::window_close_callback(GLFWwindow* win)
 void MyApp::window_size_callback(GLFWwindow* win, int winx, int winy)
 {
 	glViewport(0, 0, winx, winy);
-	int winX = App::getInstance()->windowWidth = winx;
-	int winY = App::getInstance()->windowHeight = winy;
+	int width = App::getInstance()->windowWidth = winx;
+	int height = App::getInstance()->windowHeight = winy;
 
-	aspect = static_cast<float>(winX) / static_cast<float>(winY);
+	aspect = static_cast<float>(width) / static_cast<float>(height);
 	mainCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
+
+
 }
 
 void MyApp::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -128,7 +140,7 @@ void MyApp::key_callback(GLFWwindow* win, int key, int scancode, int action, int
 void MyApp::createShaderPrograms()
 {
 	const std::string shaderFolder = "Shaders\\";
-
+	/**/
 	ShaderProgram* penrose = new ShaderProgram();
 	penrose->addShader(shaderFolder + "cube_vs.glsl", GL_VERTEX_SHADER);
 	penrose->addShader(shaderFolder + "cube_fs.glsl", GL_FRAGMENT_SHADER);
@@ -139,7 +151,18 @@ void MyApp::createShaderPrograms()
 	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	penrose->create();
 	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
-
+	/** /
+	ShaderProgram* penrose = new ShaderProgram();
+	penrose->addShader(shaderFolder + "hud_vs.glsl", GL_VERTEX_SHADER);
+	penrose->addShader(shaderFolder + "hud_fs.glsl", GL_FRAGMENT_SHADER);
+	penrose->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	penrose->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
+	penrose->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
+	penrose->addUniform(engine::MODEL_MATRIX);
+	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	penrose->create();
+	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
+	/**/
 
 	ShaderProgram* textureShader = new ShaderProgram();
 	textureShader->addShader(shaderFolder + "heightMap_vs.glsl", GL_VERTEX_SHADER);
@@ -152,16 +175,63 @@ void MyApp::createShaderPrograms()
 	textureShader->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	textureShader->create();
 	ShaderProgramManager::getInstance()->add("SimpleTexture", textureShader);
+
+
+	ShaderProgram* quadTexture = new ShaderProgram();
+	quadTexture->addShader(shaderFolder + "textureFBO_vs.glsl", GL_VERTEX_SHADER);
+	quadTexture->addShader(shaderFolder + "textureFBO_fs.glsl", GL_FRAGMENT_SHADER);
+	quadTexture->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	quadTexture->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
+	quadTexture->addUniform("screenTexture");
+	quadTexture->addUniform("translationVector");
+	quadTexture->addUniform("scaleMultiplier");
+	quadTexture->create();
+	quadTexture->bind();
+	quadTexture->setUniform2f("translationVector", Vec2(0.65f, -0.7f));
+	quadTexture->setUniform2f("scaleMultiplier", Vec2(0.25f, 0.25f));
+	quadTexture->setUniform1i("screenTexture", 0);
+	quadTexture->unbind();
+	ShaderProgramManager::getInstance()->add("QuadTexture", quadTexture);
+
+	ShaderProgram* hud = new ShaderProgram();
+	hud->addShader(shaderFolder + "hud_vs.glsl", GL_VERTEX_SHADER);
+	hud->addShader(shaderFolder + "hud_fs.glsl", GL_FRAGMENT_SHADER);
+	hud->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	hud->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
+	hud->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
+	hud->addUniform(engine::MODEL_MATRIX);
+	hud->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	hud->create();
+	ShaderProgramManager::getInstance()->add("Hud", hud);
+
 }
 
 /////////////////////////////////////////////////////////////////////// TEXTUREs
 void MyApp::createTextures()
 {
 	const std::string TextureFolder = "Textures\\";
+
 	std::string texturePath = TextureFolder + "earthbump1k.jpg";
 	Texture2D* earth = new Texture2D();
 	earth->load(texturePath);
 	TextureManager::getInstance()->add("EarthHeightMap", earth);
+
+	Texture2D* circle = new Texture2D();
+	circle->load(TextureFolder + "Circle.png");
+	TextureManager::getInstance()->add("Circle", circle);
+
+	Texture2D* radar = new Texture2D();
+	radar->load(TextureFolder + "Radar.png");
+	TextureManager::getInstance()->add("Radar", radar);
+
+	Texture2D* arrow = new Texture2D();
+	arrow->load(TextureFolder + "Arrow.png");
+	TextureManager::getInstance()->add("Arrow", arrow);
+
+	// Render Target Texture for the hud
+	RenderTargetTexture* rtt = new RenderTargetTexture();
+	rtt->create(App::getInstance()->windowWidth, App::getInstance()->windowWidth);
+	TextureManager::getInstance()->add("RTT", (RenderTargetTexture*)rtt);
 }
 
 /////////////////////////////////////////////////////////////////////// MESHes
@@ -185,24 +255,32 @@ void MyApp::createMeshes()
 	Mesh* terrain = terrainBuilder.buildMesh();
 	MeshManager::getInstance()->add("Terrain", terrain);
 
+	// Quad
+	quad = new Quad2D();
+
 }
 /////////////////////////////////////////////////////////////////////// CAMERA
 void MyApp::setupCamera()
 {
 	glfwSetInputMode(App::getInstance()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	float winY = static_cast<float>(App::getInstance()->windowHeight);
-	float winX = static_cast<float>(App::getInstance()->windowWidth);
+	float height = static_cast<float>(App::getInstance()->windowHeight);
+	float width = static_cast<float>(App::getInstance()->windowWidth);
 
-	aspect = winX / winY;
+	aspect = width / height;
 
-	mainCamera = new Camera(initialEye, initialCenter, initialUp, UBO_CAMERA);
+	mainCamera = new Camera(initialEye, initialCenter, initialUp);
 	mainCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
 
-	float initialYaw = 0.0f;
+	float initialYaw = -90.0f;
 	float initialPitch = 0.0f;
-	camController = new CameraController(*mainCamera, winY, winX, initialYaw, initialPitch);
+	camController = new CameraController(*mainCamera, height, width, initialYaw, initialPitch);
 
+	hudCamera = new Camera({initialEye.x, initialEye.y + 20, initialEye.z}, initialEye, initialUp); //TODO: remove magic number
+	float zoomLevel = 10.0f;
+	//hudCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
+	hudCamera->setOrthographicProjectionMatrix(aspect * -zoomLevel, aspect * zoomLevel, -zoomLevel, zoomLevel, near, far);
+	hudCameraController = new Follow2DCameraController(hudCamera, camController);
 }
 /////////////////////////////////////////////////////////////////////// SCENE
 
@@ -211,7 +289,7 @@ void MyApp::createSceneGraph()
 	SceneGraph* scene = new SceneGraph();
 	SceneGraphManager::getInstance()->add("Main", scene);
 	scene->setCamera(mainCamera);
-	callback = new DisableDepthCallback();
+	//callback = new DisableDepthCallback();
 
 	// Test Cube
 	SceneNode* testCube = scene->getRoot();
@@ -219,6 +297,7 @@ void MyApp::createSceneGraph()
 	testCube->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
 
 	// Test terrain
+	/**/
 	SceneNode* terrainNode = scene->getRoot()->createNode();
 	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
 	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("SimpleTexture");
@@ -227,7 +306,9 @@ void MyApp::createSceneGraph()
 	terrainNode->setShaderProgram(terrainShader);
 
 	terrainNode->setMatrix(MatFactory::createTranslationMat4(Vec3(5, 0, 0)));
+	/**/
 }
+
 ///////////////////////////////////////////////////////////////////// SIMULATION
 void MyApp::createSimulation()
 {
@@ -241,6 +322,8 @@ void MyApp::destroyManagers()
 	TextureManager::freeInstance();
 	AnimatorManager::freeInstance();
 	ShaderProgramManager::freeInstance();
+	// TODO removed
+	delete quad;
 	MeshManager::freeInstance();
 	SceneGraphManager::freeInstance();
 }
@@ -252,13 +335,89 @@ void MyApp::destroySimulation()
 
 void MyApp::destroyCallbacks()
 {
-	delete callback;
+	//delete callback;
+}
+
+void MyApp::destroyCameras()
+{
+	/// Main Camera
+	delete mainCamera;
+	delete camController;
+	/// Hud Camera
+	delete hudCamera;
+	delete hudCameraController;
 }
 
 ///////////////////////////////////////////////////////////////////// DRAW AND UPDATEs
+void MyApp::renderQuad(ShaderProgram* shader, Texture* texture, const std::string& textureUniform)
+{
+	shader->bind();
+	shader->setUniform1i(textureUniform, 0);
+	glActiveTexture(GL_TEXTURE0);
+	texture->bind();
+
+	glDisable(GL_DEPTH_TEST);
+	quad->draw();
+	glEnable(GL_DEPTH_TEST);
+
+	//glBindTexture(GL_TEXTURE_2D, 0);
+}
+void MyApp::renderHUD(RenderTargetTexture& rttHud)
+{
+	// Main RTT Shader
+	ShaderProgram* quadTexture_s = ShaderProgramManager::getInstance()->get("QuadTexture");
+	// 1- Render circle
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);	// All fragments should pass the stencil test
+	glStencilMask(0xFF);				// Able to write in the stencil buffer
+	quadTexture_s->bind();
+	quadTexture_s->setUniform1f("interpolationFactor", 1);
+	Texture2D& circle = *(Texture2D*)TextureManager::getInstance()->get("Circle");
+	renderQuad(quadTexture_s, &circle, "screenTexture");	
+	// 2 - Draw RTT on top of the circle 
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	glStencilMask(0x00);				// Disable writing to the stencil buffer
+	// Obtain Radar Texture
+	Texture2D& radar = *(Texture2D*)TextureManager::getInstance()->get("Radar"); 
+	glActiveTexture(GL_TEXTURE1);
+	radar.bind();
+	quadTexture_s->bind();
+	quadTexture_s->setUniform1i("radarTexture", 1);
+	quadTexture_s->setUniform1f("interpolationFactor", 0.6f);
+	renderQuad(quadTexture_s, &rttHud, "screenTexture");
+	// 3 - Render Arrow
+	// Obtain Arrow texture
+	Texture2D& arrow = *(Texture2D*)TextureManager::getInstance()->get("Arrow");
+	quadTexture_s->bind();
+	quadTexture_s->setUniform1f("interpolationFactor", 1);
+	renderQuad(quadTexture_s, &arrow, "arrow");
+	// Reset Stencil
+	glStencilFunc(GL_ALWAYS, 0, 0xFF);
+	glStencilMask(0xFF);
+}
 void MyApp::drawSceneGraph()
 {
-	SceneGraphManager::getInstance()->get("Main")->draw();
+	// Draw main scene
+	SceneGraph* scene = SceneGraphManager::getInstance()->get("Main");
+	scene->draw();
+	// Switch to HUD's camera
+	scene->setCamera(hudCamera);
+	// Obtain Render Target Texture for drawing the HUD
+	RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
+
+	// Draw HUD
+	hud.clearColor(0.5f, 0.5f, 0.5f, 1.f);
+	hud.bindFramebuffer();
+	scene->draw();
+	hud.unbindFramebuffer();
+	//Render HUD into the main scene
+	glClearColor(0.5f, 0.5f, 0.5f, 1.f);
+	renderHUD(hud);
+	// Reset Viewport size
+	glViewport(0, 0, App::getInstance()->windowWidth, App::getInstance()->windowHeight);
+	// Reset shader to the original one
+	scene->setCamera(mainCamera);
+
 }
 
 void MyApp::processMovement()
@@ -271,13 +430,17 @@ void MyApp::processMovement()
 	int backward = (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS);
 
 	if (right || left || forward || backward)
+	{
 		camController->setMovement(right, left, forward, backward);
+	}
+
 }
 
 void MyApp::onUpdate(float deltaTime)
 {
 	processMovement();
 	camController->update(deltaTime);
+	hudCameraController->update(deltaTime);
 }
 
 ///////////////////////////////////////////////////////////////////////// MAIN
