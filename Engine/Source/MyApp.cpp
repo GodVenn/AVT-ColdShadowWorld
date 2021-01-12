@@ -124,7 +124,6 @@ void MyApp::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 void MyApp::mouse_callback(GLFWwindow* win, double xpos, double ypos)
 {
 	camController->setYawPitch((float)xpos, (float)ypos);
-	//hudCameraController->setYawPitch((float)xpos, (float)ypos);
 }
 
 void MyApp::key_callback(GLFWwindow* win, int key, int scancode, int action, int mods)
@@ -191,7 +190,6 @@ void MyApp::createShaderPrograms()
 	quadTexture->setUniform2f("translationVector", Vec2(0.65f, -0.7f));
 	quadTexture->setUniform2f("scaleMultiplier", Vec2(0.25f, 0.25f));
 	quadTexture->setUniform1i("screenTexture", 0);
-	quadTexture->setUniform4f("u_Color", Vec4(0.8f, 1.0f, 0.8f, 1.f));
 	quadTexture->unbind();
 	ShaderProgramManager::getInstance()->add("QuadTexture", quadTexture);
 
@@ -221,6 +219,14 @@ void MyApp::createTextures()
 	Texture2D* circle = new Texture2D();
 	circle->load(TextureFolder + "Circle.png");
 	TextureManager::getInstance()->add("Circle", circle);
+
+	Texture2D* radar = new Texture2D();
+	radar->load(TextureFolder + "Radar.png");
+	TextureManager::getInstance()->add("Radar", radar);
+
+	Texture2D* arrow = new Texture2D();
+	arrow->load(TextureFolder + "Arrow.png");
+	TextureManager::getInstance()->add("Arrow", arrow);
 
 	// Render Target Texture for the hud
 	RenderTargetTexture* rtt = new RenderTargetTexture();
@@ -271,7 +277,7 @@ void MyApp::setupCamera()
 	camController = new CameraController(*mainCamera, height, width, initialYaw, initialPitch);
 
 	hudCamera = new Camera({initialEye.x, initialEye.y + 20, initialEye.z}, initialEye, initialUp); //TODO: remove magic number
-	float zoomLevel = 15.0f;
+	float zoomLevel = 10.0f;
 	//hudCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
 	hudCamera->setOrthographicProjectionMatrix(aspect * -zoomLevel, aspect * zoomLevel, -zoomLevel, zoomLevel, near, far);
 	hudCameraController = new Follow2DCameraController(hudCamera, camController);
@@ -347,31 +353,47 @@ void MyApp::renderQuad(ShaderProgram* shader, Texture* texture, const std::strin
 {
 	shader->bind();
 	shader->setUniform1i(textureUniform, 0);
+	glActiveTexture(GL_TEXTURE0);
 	texture->bind();
 
 	glDisable(GL_DEPTH_TEST);
 	quad->draw();
 	glEnable(GL_DEPTH_TEST);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	//glBindTexture(GL_TEXTURE_2D, 0);
 }
 void MyApp::renderHUD(RenderTargetTexture& rttHud)
 {
-
+	// Main RTT Shader
+	ShaderProgram* quadTexture_s = ShaderProgramManager::getInstance()->get("QuadTexture");
+	// 1- Render circle
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);	// All fragments should pass the stencil test
 	glStencilMask(0xFF);				// Able to write in the stencil buffer
-
+	quadTexture_s->bind();
+	quadTexture_s->setUniform1f("interpolationFactor", 1);
 	Texture2D& circle = *(Texture2D*)TextureManager::getInstance()->get("Circle");
-	renderQuad(ShaderProgramManager::getInstance()->get("QuadTexture"), &circle, "screenTexture");
-
+	renderQuad(quadTexture_s, &circle, "screenTexture");	
+	// 2 - Draw RTT on top of the circle 
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
-	glStencilMask(0x00);				// disable writing to the stencil buffer
-	renderQuad(ShaderProgramManager::getInstance()->get("QuadTexture"), &rttHud, "screenTexture");
-
+	glStencilMask(0x00);				// Disable writing to the stencil buffer
+	// Obtain Radar Texture
+	Texture2D& radar = *(Texture2D*)TextureManager::getInstance()->get("Radar"); 
+	glActiveTexture(GL_TEXTURE1);
+	radar.bind();
+	quadTexture_s->bind();
+	quadTexture_s->setUniform1i("radarTexture", 1);
+	quadTexture_s->setUniform1f("interpolationFactor", 0.6f);
+	renderQuad(quadTexture_s, &rttHud, "screenTexture");
+	// 3 - Render Arrow
+	// Obtain Arrow texture
+	Texture2D& arrow = *(Texture2D*)TextureManager::getInstance()->get("Arrow");
+	quadTexture_s->bind();
+	quadTexture_s->setUniform1f("interpolationFactor", 1);
+	renderQuad(quadTexture_s, &arrow, "arrow");
 	// Reset Stencil
 	glStencilFunc(GL_ALWAYS, 0, 0xFF);
-	glStencilMask(0xFF);			
+	glStencilMask(0xFF);
 }
 void MyApp::drawSceneGraph()
 {

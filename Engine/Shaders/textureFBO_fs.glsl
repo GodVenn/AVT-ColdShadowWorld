@@ -4,11 +4,15 @@ out vec4 FragColor;
 in vec2 TexCoords;
 
 uniform sampler2D screenTexture;
-uniform vec4 u_Color;
+uniform sampler2D radarTexture;
+uniform float interpolationFactor;
+
 void main()
 { 
-    vec4 texColor = texture(screenTexture, TexCoords);
+    vec4 screenColor = texture(screenTexture, TexCoords);
+    vec4 radarColor = texture(radarTexture, TexCoords);
+    vec4 texColor = mix(radarColor, screenColor, interpolationFactor);
     if(texColor.a == 0)
         discard;
-    FragColor = texColor * u_Color;
+    FragColor = texColor;
 } 
