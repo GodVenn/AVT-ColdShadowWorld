@@ -64,6 +64,7 @@ namespace engine
 		Quad2D();
 		~Quad2D();
 
+		//void draw(const Vec2& postions, const Vec2& size, const Texture& texture, const float tilingFactor, );
 		void draw();
 
 	private:

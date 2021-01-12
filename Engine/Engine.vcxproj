@@ -246,6 +246,8 @@
   <ItemGroup>
     <None Include="Shaders\cube_fs.glsl" />
     <None Include="Shaders\cube_vs.glsl" />
+    <None Include="Shaders\flatTexture_fs.glsl" />
+    <None Include="Shaders\flatTexture_vs.glsl" />
     <None Include="Shaders\frame_fs.glsl" />
     <None Include="Shaders\frame_vs.glsl" />
     <None Include="Shaders\heightMap_fs.glsl" />

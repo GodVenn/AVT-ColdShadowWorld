@@ -1,6 +1,7 @@
 #include "..\Headers\pch.h"
 #include "..\Headers\Base.h"
 #include "..\Headers\Texture.h"
+#include "..\Headers\App.h"
 #include <stb_image.h>
 
 
@@ -140,7 +141,7 @@ namespace engine
 		glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 		glViewport(0, 0, _width, _height);
 		glClearColor(_r, _g, _b, _a);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 	void RenderTargetTexture::unbindFramebuffer()
 	{

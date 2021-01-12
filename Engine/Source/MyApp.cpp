@@ -17,11 +17,12 @@ public:
 
 	virtual void onUpdate(float deltaTime) override;
 
+
+
 private:
 
 	/// CALLBACKs
 	DisableDepthCallback* callback = nullptr;
-
 	/// BINDING POINTs
 	const int UBO_CAMERA = 0;
 	const int UBO_CAMERA1 = 1;
@@ -47,6 +48,9 @@ private:
 	Camera* hudCamera = nullptr;
 	Follow2DCameraController* hudCameraController = nullptr;
 
+	// Quad2D;
+	Quad2D* quad = nullptr;
+
 	/// CAMERA MOVEMENTS
 	const float cameraSpeed = 6.0f;
 	const float cameraSensitivity = 0.05f;
@@ -65,6 +69,9 @@ private:
 
 	void drawSceneGraph();
 	void processMovement();
+	// HUD
+	void renderQuad(ShaderProgram* shader, Texture* texture, const std::string& textureUniform);
+	void renderHUD(RenderTargetTexture& rttHud);
 };
 
 /////////////////////////////////////////////////////////////////////// CALLBACKs
@@ -185,9 +192,10 @@ void MyApp::createShaderPrograms()
 	quadTexture->addUniform("scaleMultiplier");
 	quadTexture->create();
 	quadTexture->bind();
-	quadTexture->setUniform2f("translationVector", Vec2(0.65f, -0.5f));
-	quadTexture->setUniform2f("scaleMultiplier", Vec2(0.3f, 0.3f));
+	quadTexture->setUniform2f("translationVector", Vec2(0.65f, -0.7f));
+	quadTexture->setUniform2f("scaleMultiplier", Vec2(0.25f, 0.25f));
 	quadTexture->setUniform1i("screenTexture", 0);
+	quadTexture->setUniform4f("u_Color", Vec4(0.8f, 1.0f, 0.8f, 1.f));
 	quadTexture->unbind();
 	ShaderProgramManager::getInstance()->add("QuadTexture", quadTexture);
 
@@ -208,14 +216,19 @@ void MyApp::createShaderPrograms()
 void MyApp::createTextures()
 {
 	const std::string TextureFolder = "Textures\\";
+
 	std::string texturePath = TextureFolder + "earthbump1k.jpg";
 	Texture2D* earth = new Texture2D();
 	earth->load(texturePath);
 	TextureManager::getInstance()->add("EarthHeightMap", earth);
 
-	//RENDER TARGET TEXTURE
+	Texture2D* circle = new Texture2D();
+	circle->load(TextureFolder + "Circle.png");
+	TextureManager::getInstance()->add("Circle", circle);
+
+	// Render Target Texture for the hud
 	RenderTargetTexture* rtt = new RenderTargetTexture();
-	rtt->create(App::getInstance()->windowWidth, App::getInstance()->windowHeight);
+	rtt->create(App::getInstance()->windowWidth, App::getInstance()->windowWidth);
 	TextureManager::getInstance()->add("RTT", (RenderTargetTexture*)rtt);
 }
 
@@ -239,6 +252,9 @@ void MyApp::createMeshes()
 	terrainBuilder.setHeightMap(heightMap);
 	Mesh* terrain = terrainBuilder.buildMesh();
 	MeshManager::getInstance()->add("Terrain", terrain);
+
+	// Quad
+	quad = new Quad2D();
 
 }
 /////////////////////////////////////////////////////////////////////// CAMERA
@@ -304,6 +320,8 @@ void MyApp::destroyManagers()
 	TextureManager::freeInstance();
 	AnimatorManager::freeInstance();
 	ShaderProgramManager::freeInstance();
+	// TODO removed
+	delete quad;
 	MeshManager::freeInstance();
 	SceneGraphManager::freeInstance();
 }
@@ -329,36 +347,60 @@ void MyApp::destroyCameras()
 }
 
 ///////////////////////////////////////////////////////////////////// DRAW AND UPDATEs
+void MyApp::renderQuad(ShaderProgram* shader, Texture* texture, const std::string& textureUniform)
+{
+	shader->bind();
+	shader->setUniform1i(textureUniform, 0);
+	texture->bind();
+
+	glDisable(GL_DEPTH_TEST);
+	quad->draw();
+	glEnable(GL_DEPTH_TEST);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+void MyApp::renderHUD(RenderTargetTexture& rttHud)
+{
+
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);	// All fragments should pass the stencil test
+	glStencilMask(0xFF);				// Able to write in the stencil buffer
+
+	Texture2D& circle = *(Texture2D*)TextureManager::getInstance()->get("Circle");
+	renderQuad(ShaderProgramManager::getInstance()->get("QuadTexture"), &circle, "screenTexture");
+
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
+	glStencilMask(0x00);				// disable writing to the stencil buffer
+	renderQuad(ShaderProgramManager::getInstance()->get("QuadTexture"), &rttHud, "screenTexture");
+
+	// Reset Stencil
+	glStencilFunc(GL_ALWAYS, 0, 0xFF);
+	glStencilMask(0xFF);			
+}
 void MyApp::drawSceneGraph()
 {
+	// Draw main scene
 	SceneGraph* scene = SceneGraphManager::getInstance()->get("Main");
 	scene->draw();
-	/**/
-	//Mat4 mainViewMatrix = mainCamera->getViewMatrix();
-	//Mat4 mainProjMatrix = mainCamera->getProjMatrix();
-
-	//mainCamera->setViewMatrix(hudCamera->getViewMatrix());
-	//mainCamera->setProjectionMatrix(hudCamera->getProjMatrix());
+	// Switch to HUD's camera
 	scene->setCamera(hudCamera);
-	//Obtain Render Target Texture for drawing the HUD
+	// Obtain Render Target Texture for drawing the HUD
 	RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
-	//Update shader in order to draw HUD
+	// Update shader in order to draw HUD
 	ShaderProgram* s_Hud = ShaderProgramManager::getInstance()->get("Hud");
 	scene->getRoot()->setShaderProgram(s_Hud);
-	//Draw HUD
-	hud.clearColor(0.8f, 1.f, 0.5f, 1.f);
+	// Draw HUD
+	hud.clearColor(0.5f, 0.5f, 0.5f, 1.f);
 	hud.bindFramebuffer();
 	scene->draw();
 	hud.unbindFramebuffer();
 	//Render HUD into the main scene
 	glClearColor(0.5f, 0.5f, 0.5f, 1.f);
-	hud.renderQuad(ShaderProgramManager::getInstance()->get("QuadTexture"), "screenTexture");
-
-	//Reset shader to the original one
-	//mainCamera->setViewMatrix(mainViewMatrix);
-	//mainCamera->setProjectionMatrix(mainProjMatrix);
+	renderHUD(hud);
+	// Reset Viewport size
+	glViewport(0, 0, App::getInstance()->windowWidth, App::getInstance()->windowHeight);
+	// Reset shader to the original one
 	scene->getRoot()->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
-	/**/
 	scene->setCamera(mainCamera);
 
 }
