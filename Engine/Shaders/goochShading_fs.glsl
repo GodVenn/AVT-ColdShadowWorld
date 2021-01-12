@@ -1,6 +1,6 @@
 #version 330 core
 // Shadows
-/** /
+/**/
 in vec4 exShadowVertex;
 in vec3 exPosition;
 in vec3 exNormal;
@@ -73,6 +73,7 @@ void main(void)
   float RdotE = max(dot(R,E),0.0);
   vec3 specular = vec3(pow(RdotE, SpecularPower));
   FragColor =  vec4(vec3(diffuse + specular), 1);
+  //FragColor =  vec4(exNormal, 1);
 
   // Shadow calculation and color
   /** /
