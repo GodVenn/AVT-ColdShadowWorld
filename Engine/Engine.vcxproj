@@ -250,6 +250,8 @@
     <None Include="Shaders\flatTexture_vs.glsl" />
     <None Include="Shaders\frame_fs.glsl" />
     <None Include="Shaders\frame_vs.glsl" />
+    <None Include="Shaders\goochShading_fs.glsl" />
+    <None Include="Shaders\goochShading_vs.glsl" />
     <None Include="Shaders\heightMap_fs.glsl" />
     <None Include="Shaders\heightMap_vs.glsl" />
     <None Include="Shaders\hud_fs.glsl" />

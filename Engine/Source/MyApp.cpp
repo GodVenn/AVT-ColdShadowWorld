@@ -1,7 +1,12 @@
 #include "../Headers/pch.h"
 #include "../Headers/Engine.h"
-/**/
+
 using namespace engine;
+// TODO
+// Note: This flag is used to run the engine with a pre-maded terrain
+//		 intead of the procedurally generated one. Change to 0 in order
+//		 to use the procedural terrain.
+#define TEST_TERRAIN 1
 
 class MyApp : public IApp, IUpdatable
 {
@@ -22,7 +27,7 @@ public:
 private:
 
 	/// CALLBACKs
-
+	BackMode* backModeCB = nullptr;
 	/// BINDING POINTs
 	const int UBO_CAMERA = 0;
 
@@ -50,6 +55,10 @@ private:
 	/// CAMERA MOVEMENTS
 	const float cameraSpeed = 6.0f;
 	const float cameraSensitivity = 0.05f;
+
+	// Gooch and Shadow
+	Vec3 LightPos = Vec3(2.f, 7.f, -3.f); 
+	float silhouetteOffset = 0.015f;
 
 	void createTextures();
 	void createMeshes();
@@ -151,18 +160,6 @@ void MyApp::createShaderPrograms()
 	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	penrose->create();
 	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
-	/** /
-	ShaderProgram* penrose = new ShaderProgram();
-	penrose->addShader(shaderFolder + "hud_vs.glsl", GL_VERTEX_SHADER);
-	penrose->addShader(shaderFolder + "hud_fs.glsl", GL_FRAGMENT_SHADER);
-	penrose->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
-	penrose->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
-	penrose->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
-	penrose->addUniform(engine::MODEL_MATRIX);
-	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
-	penrose->create();
-	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
-	/**/
 
 	ShaderProgram* textureShader = new ShaderProgram();
 	textureShader->addShader(shaderFolder + "heightMap_vs.glsl", GL_VERTEX_SHADER);
@@ -204,6 +201,45 @@ void MyApp::createShaderPrograms()
 	hud->create();
 	ShaderProgramManager::getInstance()->add("Hud", hud);
 
+	// SILHOUETTE
+	ShaderProgram* silhouette = new ShaderProgram();
+	silhouette->addShader(shaderFolder + "silhouette_vs.glsl", GL_VERTEX_SHADER);
+	silhouette->addShader(shaderFolder + "silhouette_fs.glsl", GL_FRAGMENT_SHADER);
+	silhouette->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	silhouette->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
+	silhouette->addUniform(engine::MODEL_MATRIX);
+	silhouette->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	silhouette->addUniform("Offset");
+	silhouette->create();
+	silhouette->bind();
+	silhouette->setUniform1f("Offset", silhouetteOffset);
+	ShaderProgramManager::getInstance()->add("Silhouette", silhouette);
+
+	ShaderProgram* gooch = new ShaderProgram();
+	gooch->addShader(shaderFolder + "goochShading_vs.glsl", GL_VERTEX_SHADER);
+	gooch->addShader(shaderFolder + "goochShading_fs.glsl", GL_FRAGMENT_SHADER);
+	gooch->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	gooch->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
+	gooch->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	gooch->addUniform(engine::MODEL_MATRIX);
+	gooch->addUniform("LightPosition");
+	gooch->addUniform("SurfaceColor");
+	gooch->addUniform("AmbientWarm");
+	gooch->addUniform("AmbientCool");
+	gooch->addUniform("DiffuseCool");
+	gooch->addUniform("DiffuseWarm");
+	gooch->addUniform("SpecularPower");
+	gooch->create();
+	gooch->bind();
+	gooch->setUniform3f("SurfaceColor", Vec3(0.75f, 0.75f, 0.75f));
+	gooch->setUniform3f("AmbientWarm", Vec3(0.6f, 0.f, 0));
+	gooch->setUniform3f("AmbientCool", Vec3(0, 0, 0.6f));
+	gooch->setUniform1f("DiffuseCool", 0.45f);
+	gooch->setUniform1f("DiffuseWarm", 0.45f);
+	gooch->setUniform1f("SpecularPower", 45.f);
+	gooch->setUniform3f("LightPosition", LightPos);
+	ShaderProgramManager::getInstance()->add("Gooch", gooch);
+
 }
 
 /////////////////////////////////////////////////////////////////////// TEXTUREs
@@ -242,18 +278,24 @@ void MyApp::createMeshes()
 	Mesh* cube = new Mesh(cube_file);
 	MeshManager::getInstance()->add("Cube", cube);
 
+#if TEST_TERRAIN
+	std::string testTerrain_file = modelsFolder + "TestTerrain.obj";
+	Mesh* testTerrain = new Mesh(testTerrain_file);
+	MeshManager::getInstance()->add("TestTerrain", testTerrain);
+#else
 	// Terrain
 	float terrainWidth = 10;
 	float terrainLength = 5;
 	float terrainMaxHeight = 0.1f;
 	unsigned int terrainSimplicity = 4;
-	bool calculateNormals = false;
+	bool calculateNormals = true;
 	TerrainBuilder terrainBuilder = TerrainBuilder(terrainWidth, terrainLength, terrainSimplicity, terrainMaxHeight, calculateNormals);
 
 	const std::string heightMap = "Textures\\earthbump1k.jpg";
 	terrainBuilder.setHeightMap(heightMap);
 	Mesh* terrain = terrainBuilder.buildMesh();
 	MeshManager::getInstance()->add("Terrain", terrain);
+#endif // TEST_TERRAIN
 
 	// Quad
 	quad = new Quad2D();
@@ -292,20 +334,48 @@ void MyApp::createSceneGraph()
 	//callback = new DisableDepthCallback();
 
 	// Test Cube
+	/** /
 	SceneNode* testCube = scene->getRoot();
 	testCube->setMesh(MeshManager::getInstance()->get("Cube"));
 	testCube->setShaderProgram(ShaderProgramManager::getInstance()->get("PenroseCube"));
-
-	// Test terrain
 	/**/
-	SceneNode* terrainNode = scene->getRoot()->createNode();
-	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
-	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("SimpleTexture");
-	TextureInfo* texInfo = new TextureInfo(GL_TEXTURE0, 0, "Texture", TextureManager::getInstance()->get("EarthHeightMap"));
-	terrainNode->addTextureInfo(texInfo);
+#if TEST_TERRAIN
+	// Test terrain
+	SceneNode* terrainNode = scene->getRoot();
+	terrainNode->setMesh(MeshManager::getInstance()->get("TestTerrain"));
+	// Gooch Shader
+	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("Gooch");
 	terrainNode->setShaderProgram(terrainShader);
+	// Old terrain texture
+	//TextureInfo* texInfo = new TextureInfo(GL_TEXTURE0, 0, "Texture", TextureManager::getInstance()->get("EarthHeightMap"));
+	//terrainNode->addTextureInfo(texInfo);
+	// SILHOUETTE 
+	backModeCB = new BackMode();
+	SceneNode* n_Silhouette = terrainNode->createNode();
+	n_Silhouette->setMesh(MeshManager::getInstance()->get("TestTerrain"));
+	ShaderProgram* s_Silhouette = ShaderProgramManager::getInstance()->get("Silhouette");
+	n_Silhouette->setShaderProgram(s_Silhouette);
+	n_Silhouette->setCallback(backModeCB);
+#else
+	// Test terrain
+	SceneNode* terrainNode = scene->getRoot();
+	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
+	// Gooch Shader
+	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("Gooch");
+	terrainNode->setShaderProgram(terrainShader);
+	// Old terrain texture
+	//TextureInfo* texInfo = new TextureInfo(GL_TEXTURE0, 0, "Texture", TextureManager::getInstance()->get("EarthHeightMap"));
+	//terrainNode->addTextureInfo(texInfo);
+	// SILHOUETTE 
+	backModeCB = new BackMode();
+	SceneNode* n_Silhouette = terrainNode->createNode();
+	n_Silhouette->setMesh(MeshManager::getInstance()->get("Terrain"));
+	ShaderProgram* s_Silhouette = ShaderProgramManager::getInstance()->get("Silhouette");
+	n_Silhouette->setShaderProgram(s_Silhouette);
+	n_Silhouette->setCallback(backModeCB);
+#endif // TEST_TERRAIN
 
-	terrainNode->setMatrix(MatFactory::createTranslationMat4(Vec3(5, 0, 0)));
+	
 	/**/
 }
 
@@ -336,6 +406,7 @@ void MyApp::destroySimulation()
 void MyApp::destroyCallbacks()
 {
 	//delete callback;
+	delete backModeCB;
 }
 
 void MyApp::destroyCameras()
@@ -390,7 +461,7 @@ void MyApp::renderHUD(RenderTargetTexture& rttHud)
 	Texture2D& arrow = *(Texture2D*)TextureManager::getInstance()->get("Arrow");
 	quadTexture_s->bind();
 	quadTexture_s->setUniform1f("interpolationFactor", 1);
-	renderQuad(quadTexture_s, &arrow, "arrow");
+	renderQuad(quadTexture_s, &arrow, "screenTexture");
 	// Reset Stencil
 	glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	glStencilMask(0xFF);
