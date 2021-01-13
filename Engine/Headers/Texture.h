@@ -8,6 +8,7 @@ namespace engine
 	class Texture;
 	class Texture2D;
 	class RenderTargetTexture;
+	class TextureShadowMap;
 	struct TextureInfo;
 
 	class Sampler;
@@ -71,7 +72,7 @@ namespace engine
 		GLuint _vao, _vbo;
 		GLfloat _vertices[24];
 	};
-
+	/////////////////////////////////////////////////////////////////////// RenderTargetTexture
 	class RenderTargetTexture : public Texture
 	{
 	public:
@@ -94,6 +95,27 @@ namespace engine
 		Quad2D* _quad;
 		GLuint _framebuffer, _rboDepthStencil;
 		GLfloat _r, _g, _b, _a;
+		int _width, _height;
+	};
+	/////////////////////////////////////////////////////////////////////// TextureShadowMap
+	class TextureShadowMap : public Texture
+	{
+	public:
+		TextureShadowMap();
+		~TextureShadowMap();
+
+		virtual void bind() override;
+		virtual void unbind() override;
+		void create(const int width, const int height);
+
+		void bindFramebuffer();
+		void unbindFramebuffer();
+
+		void renderQuad(ShaderProgram* shader, const std::string& textureUniform);
+
+	private:
+		Quad2D* _quad;
+		GLuint _framebuffer;
 		int _width, _height;
 	};
 	/////////////////////////////////////////////////////////////////////// SAMPLERs

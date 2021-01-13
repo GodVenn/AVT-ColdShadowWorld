@@ -258,6 +258,12 @@
     <None Include="Shaders\hud_vs.glsl" />
     <None Include="Shaders\Shader_f.glsl" />
     <None Include="Shaders\Shader_v.glsl" />
+    <None Include="Shaders\ShadowMapDebug_fs.glsl" />
+    <None Include="Shaders\ShadowMapDebug_vs.glsl" />
+    <None Include="Shaders\shadowMap_fs.glsl" />
+    <None Include="Shaders\shadowMap_vs.glsl" />
+    <None Include="Shaders\silhouette_fs.glsl" />
+    <None Include="Shaders\silhouette_vs.glsl" />
     <None Include="Shaders\textureFBO_fs.glsl" />
     <None Include="Shaders\textureFBO_vs.glsl" />
   </ItemGroup>

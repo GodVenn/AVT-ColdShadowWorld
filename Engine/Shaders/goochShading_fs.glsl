@@ -1,21 +1,18 @@
 #version 330 core
 // Shadows
-/**/
 in vec4 exShadowVertex;
 in vec3 exPosition;
 in vec3 exNormal;
 
 uniform vec3 LightPosition;
-/**/
-//uniform sampler2D u_ShadowMap;
+uniform sampler2D u_ShadowMap;
 
 // Shading 
 //-- Calculae the specular component
-/**/
 in vec3 exEyeVector; 
 in vec3 exReflectionVector; // To compute the specular tern
 in float exIntensity;       // Difusse intensity 
-/**/
+
 uniform vec3 SurfaceColor;
 uniform vec3 AmbientWarm;
 uniform vec3 AmbientCool;
@@ -26,7 +23,7 @@ uniform float SpecularPower;
 // Output color
 out vec4 FragColor;
 
-/** /
+/**/
 float ShadowCalculation(vec4 fragPosLightSpace)
 {
     // perform perspective divide
@@ -72,15 +69,13 @@ void main(void)
   vec3 E = normalize(exEyeVector);
   float RdotE = max(dot(R,E),0.0);
   vec3 specular = vec3(pow(RdotE, SpecularPower));
-  FragColor =  vec4(vec3(diffuse + specular), 1);
+  vec4 goochColor =  vec4(vec3(diffuse + specular), 1);
   //FragColor =  vec4(exNormal, 1);
 
   // Shadow calculation and color
-  /** /
   float shadow = ShadowCalculation(exShadowVertex);
   vec4 shadowDiffuseColor = vec4(diffuse, 1).rgba * 0.6;
   shadowDiffuseColor.a = 0.6;
 
   FragColor = mix(shadowDiffuseColor, goochColor,(1.0 - shadow));
-  /**/
 }

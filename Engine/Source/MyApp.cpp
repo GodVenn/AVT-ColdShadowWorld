@@ -32,10 +32,11 @@ private:
 	const int UBO_CAMERA = 0;
 
 	/// CAMERA SETUP VALUES
+	// Main Camera
 	Camera* mainCamera = nullptr;
 	CameraController* camController = nullptr;
 	const Vec3 initialEye = Vec3(0.0f, 5.0f, 5.0f);
-	const Vec3 initialCenter = Vec3(0.0f, 0.0f, 0.0f);
+	const Vec3 initialCenter = Vec3(0.0f, 0.0f, -1.0f);
 	const Vec3 initialUp = Vec3(0.0f, 1.0f, 0.0f);
 	const float fovThreshold = 45.f;
 	float fov = 45.f;
@@ -45,9 +46,17 @@ private:
 
 	float aspect = 0.f;
 
-	//HUD CAMERA SETUP VALUES
+	// HUD Camera
 	Camera* hudCamera = nullptr;
 	Follow2DCameraController* hudCameraController = nullptr;
+
+	// Shadow Map
+	Camera* cameraShadow = nullptr;
+	const float boxSize = 1.f;
+	float nearShadowPlane = 0.01f;
+	float farShadowPlane = 100.f;
+	float boxShadowSize = 4.7f;
+	uint32_t shadowMapResolution = 4096 * 3;
 
 	// Quad2D;
 	Quad2D* quad = nullptr;
@@ -57,7 +66,7 @@ private:
 	const float cameraSensitivity = 0.05f;
 
 	// Gooch and Shadow
-	Vec3 LightPos = Vec3(2.f, 7.f, -3.f); 
+	Vec3 LightPos = Vec3(2.f, 2.f, -4.f); 
 	float silhouetteOffset = 0.015f;
 
 	void createTextures();
@@ -65,6 +74,8 @@ private:
 	void setupCamera();
 	void createShaderPrograms();
 	void createSceneGraph();
+	void createMainScene();
+	void createShadowMapScene();
 	void createSimulation();
 
 	void destroyManagers();
@@ -187,7 +198,6 @@ void MyApp::createShaderPrograms()
 	quadTexture->setUniform2f("translationVector", Vec2(0.65f, -0.7f));
 	quadTexture->setUniform2f("scaleMultiplier", Vec2(0.25f, 0.25f));
 	quadTexture->setUniform1i("screenTexture", 0);
-	quadTexture->unbind();
 	ShaderProgramManager::getInstance()->add("QuadTexture", quadTexture);
 
 	ShaderProgram* hud = new ShaderProgram();
@@ -240,6 +250,22 @@ void MyApp::createShaderPrograms()
 	gooch->setUniform3f("LightPosition", LightPos);
 	ShaderProgramManager::getInstance()->add("Gooch", gooch);
 
+	ShaderProgram* shadowMap = new ShaderProgram();
+	shadowMap->addShader(shaderFolder + "goochShading_vs.glsl", GL_VERTEX_SHADER);
+	shadowMap->addShader(shaderFolder + "goochShading_fs.glsl", GL_FRAGMENT_SHADER);
+	shadowMap->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	shadowMap->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	shadowMap->addUniform(engine::MODEL_MATRIX);
+	shadowMap->create();
+	ShaderProgramManager::getInstance()->add("ShadowMap", shadowMap);
+
+	ShaderProgram* shadowDebug = new ShaderProgram();
+	shadowDebug->addShader(shaderFolder + "ShadowMapDebug_vs.glsl", GL_VERTEX_SHADER);
+	shadowDebug->addShader(shaderFolder + "ShadowMapDebug_fs.glsl", GL_FRAGMENT_SHADER);
+	shadowDebug->addUniform("u_ShadowMap");
+	shadowDebug->create();
+	ShaderProgramManager::getInstance()->add("ShadowMapDebug", shadowDebug);
+
 }
 
 /////////////////////////////////////////////////////////////////////// TEXTUREs
@@ -268,6 +294,11 @@ void MyApp::createTextures()
 	RenderTargetTexture* rtt = new RenderTargetTexture();
 	rtt->create(App::getInstance()->windowWidth, App::getInstance()->windowWidth);
 	TextureManager::getInstance()->add("RTT", (RenderTargetTexture*)rtt);
+
+	// Shadow Map
+	TextureShadowMap* shadowMap = new TextureShadowMap();
+	shadowMap->create(shadowMapResolution, shadowMapResolution);
+	TextureManager::getInstance()->add("ShadowMap", (TextureShadowMap*)shadowMap);
 }
 
 /////////////////////////////////////////////////////////////////////// MESHes
@@ -277,6 +308,9 @@ void MyApp::createMeshes()
 	std::string cube_file = modelsFolder + "Cube.obj";
 	Mesh* cube = new Mesh(cube_file);
 	MeshManager::getInstance()->add("Cube", cube);
+
+	// Quad
+	quad = new Quad2D();
 
 #if TEST_TERRAIN
 	std::string testTerrain_file = modelsFolder + "TestTerrain.obj";
@@ -296,10 +330,6 @@ void MyApp::createMeshes()
 	Mesh* terrain = terrainBuilder.buildMesh();
 	MeshManager::getInstance()->add("Terrain", terrain);
 #endif // TEST_TERRAIN
-
-	// Quad
-	quad = new Quad2D();
-
 }
 /////////////////////////////////////////////////////////////////////// CAMERA
 void MyApp::setupCamera()
@@ -310,24 +340,37 @@ void MyApp::setupCamera()
 	float width = static_cast<float>(App::getInstance()->windowWidth);
 
 	aspect = width / height;
-
+	// Main Camera
 	mainCamera = new Camera(initialEye, initialCenter, initialUp);
 	mainCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
-
 	float initialYaw = -90.0f;
 	float initialPitch = 0.0f;
 	camController = new CameraController(*mainCamera, height, width, initialYaw, initialPitch);
 
-	hudCamera = new Camera({initialEye.x, initialEye.y + 20, initialEye.z}, initialEye, initialUp); //TODO: remove magic number
+	// HUD camera
+	hudCamera = new Camera({initialEye.x, initialEye.y + 20, initialEye.z}, initialEye, initialUp);
 	float zoomLevel = 10.0f;
 	//hudCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
 	hudCamera->setOrthographicProjectionMatrix(aspect * -zoomLevel, aspect * zoomLevel, -zoomLevel, zoomLevel, near, far);
 	hudCameraController = new Follow2DCameraController(hudCamera, camController);
+
+	// Shadow Map Camera
+	cameraShadow = new Camera(LightPos, initialEye, initialUp);
+	cameraShadow->setOrthographicProjectionMatrix(-boxShadowSize, boxShadowSize, -boxShadowSize, boxShadowSize, nearShadowPlane, farShadowPlane);
 }
 /////////////////////////////////////////////////////////////////////// SCENE
 
 void MyApp::createSceneGraph()
 {
+	// Creates the scene that generate the depth map
+	createShadowMapScene();
+	// Creates the main scene
+	createMainScene();
+}
+
+void MyApp::createMainScene()
+{
+
 	SceneGraph* scene = new SceneGraph();
 	SceneGraphManager::getInstance()->add("Main", scene);
 	scene->setCamera(mainCamera);
@@ -346,9 +389,15 @@ void MyApp::createSceneGraph()
 	// Gooch Shader
 	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("Gooch");
 	terrainNode->setShaderProgram(terrainShader);
-	// Old terrain texture
-	//TextureInfo* texInfo = new TextureInfo(GL_TEXTURE0, 0, "Texture", TextureManager::getInstance()->get("EarthHeightMap"));
-	//terrainNode->addTextureInfo(texInfo);
+	// Add shadow's light position
+	terrainShader->bind();
+	terrainShader->setUniformMat4("ViewLightMatrix", cameraShadow->getViewMatrix());
+	terrainShader->setUniformMat4("ProjLightMatrix", cameraShadow->getProjMatrix());
+	terrainShader->setUniform3f("LightPosition", LightPos);
+	// Set Shadows Texture
+	TextureInfo* texInfoShadow = new TextureInfo(GL_TEXTURE0, 0, "u_ShadowMap",
+		(TextureShadowMap*)(TextureManager::getInstance()->get("ShadowMap")), 0);
+	terrainNode->addTextureInfo(texInfoShadow);
 	// SILHOUETTE 
 	backModeCB = new BackMode();
 	SceneNode* n_Silhouette = terrainNode->createNode();
@@ -363,9 +412,16 @@ void MyApp::createSceneGraph()
 	// Gooch Shader
 	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("Gooch");
 	terrainNode->setShaderProgram(terrainShader);
-	// Old terrain texture
-	//TextureInfo* texInfo = new TextureInfo(GL_TEXTURE0, 0, "Texture", TextureManager::getInstance()->get("EarthHeightMap"));
-	//terrainNode->addTextureInfo(texInfo);
+	// Add shadow's light position
+	terrainShader->bind();
+	terrainShader->setUniformMat4("ViewLightMatrix", cameraShadow->getViewMatrix());
+	terrainShader->setUniformMat4("ProjLightMatrix", cameraShadow->getProjMatrix());
+	terrainShader->setUniform3f("LightPosition", LightPos);
+	// Set Shadows Texture
+	TextureInfo* texInfoShadow = new TextureInfo(GL_TEXTURE0, 0, "u_ShadowMap",
+		(TextureShadowMap*)(TextureManager::getInstance()->get("ShadowMap")), 0);
+	terrainNode->addTextureInfo(texInfoShadow);
+
 	// SILHOUETTE 
 	backModeCB = new BackMode();
 	SceneNode* n_Silhouette = terrainNode->createNode();
@@ -374,9 +430,30 @@ void MyApp::createSceneGraph()
 	n_Silhouette->setShaderProgram(s_Silhouette);
 	n_Silhouette->setCallback(backModeCB);
 #endif // TEST_TERRAIN
+}
 
-	
-	/**/
+void MyApp::createShadowMapScene()
+{
+	SceneGraph* scene = new SceneGraph();
+	SceneGraphManager::getInstance()->add("ShadowMap", scene);
+	scene->setCamera(cameraShadow);
+
+
+#if TEST_TERRAIN
+	// Test terrain
+	SceneNode* terrainNode = scene->getRoot();
+	terrainNode->setMesh(MeshManager::getInstance()->get("TestTerrain"));
+	// Gooch Shader
+	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("ShadowMap");
+	terrainNode->setShaderProgram(terrainShader);
+#else
+	// Test terrain
+	SceneNode* terrainNode = scene->getRoot();
+	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
+	// Gooch Shader
+	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("ShadowMap");
+	terrainNode->setShaderProgram(terrainShader);
+#endif // TEST_TERRAIN
 }
 
 ///////////////////////////////////////////////////////////////////// SIMULATION
@@ -405,7 +482,6 @@ void MyApp::destroySimulation()
 
 void MyApp::destroyCallbacks()
 {
-	//delete callback;
 	delete backModeCB;
 }
 
@@ -431,7 +507,7 @@ void MyApp::renderQuad(ShaderProgram* shader, Texture* texture, const std::strin
 	quad->draw();
 	glEnable(GL_DEPTH_TEST);
 
-	//glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 void MyApp::renderHUD(RenderTargetTexture& rttHud)
 {
@@ -441,51 +517,83 @@ void MyApp::renderHUD(RenderTargetTexture& rttHud)
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);	// All fragments should pass the stencil test
 	glStencilMask(0xFF);				// Able to write in the stencil buffer
-	quadTexture_s->bind();
-	quadTexture_s->setUniform1f("interpolationFactor", 1);
-	Texture2D& circle = *(Texture2D*)TextureManager::getInstance()->get("Circle");
-	renderQuad(quadTexture_s, &circle, "screenTexture");	
+	{
+		quadTexture_s->bind();
+		quadTexture_s->setUniform1f("interpolationFactor", 1);
+		Texture2D& circle = *(Texture2D*)TextureManager::getInstance()->get("Circle");
+		renderQuad(quadTexture_s, &circle, "screenTexture");
+	}
 	// 2 - Draw RTT on top of the circle 
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	glStencilMask(0x00);				// Disable writing to the stencil buffer
-	// Obtain Radar Texture
-	Texture2D& radar = *(Texture2D*)TextureManager::getInstance()->get("Radar"); 
-	glActiveTexture(GL_TEXTURE1);
-	radar.bind();
-	quadTexture_s->bind();
-	quadTexture_s->setUniform1i("radarTexture", 1);
-	quadTexture_s->setUniform1f("interpolationFactor", 0.6f);
-	renderQuad(quadTexture_s, &rttHud, "screenTexture");
+	{
+		// Obtain Radar Texture
+		Texture2D& radar = *(Texture2D*)TextureManager::getInstance()->get("Radar");
+		glActiveTexture(GL_TEXTURE1);
+		radar.bind();
+		quadTexture_s->bind();
+		quadTexture_s->setUniform1i("radarTexture", 1);
+		quadTexture_s->setUniform1f("interpolationFactor", 0.6f);
+		renderQuad(quadTexture_s, &rttHud, "screenTexture");
+	}
 	// 3 - Render Arrow
-	// Obtain Arrow texture
-	Texture2D& arrow = *(Texture2D*)TextureManager::getInstance()->get("Arrow");
-	quadTexture_s->bind();
-	quadTexture_s->setUniform1f("interpolationFactor", 1);
-	renderQuad(quadTexture_s, &arrow, "screenTexture");
-	// Reset Stencil
+	{
+		// Obtain Arrow texture
+		Texture2D& arrow = *(Texture2D*)TextureManager::getInstance()->get("Arrow");
+		quadTexture_s->bind();
+		quadTexture_s->setUniform1f("interpolationFactor", 1);
+		renderQuad(quadTexture_s, &arrow, "screenTexture");
+	}
+	// 4 - Reset Stencil
 	glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	glStencilMask(0xFF);
 }
 void MyApp::drawSceneGraph()
 {
-	// Draw main scene
+	auto width = App::getInstance()->windowWidth;
+	auto height = App::getInstance()->windowHeight;
+	// 1 - DRAW SHADOW MAP	
+	TextureShadowMap& shadowMap = *(TextureShadowMap*)TextureManager::getInstance()->get("ShadowMap");
+	{
+		shadowMap.bindFramebuffer();
+		glCullFace(GL_FRONT);
+		SceneGraphManager::getInstance()->get("ShadowMap")->draw();
+		glCullFace(GL_BACK);
+		shadowMap.unbindFramebuffer();
+	}
+	// 2 - Draw main scene
 	SceneGraph* scene = SceneGraphManager::getInstance()->get("Main");
-	scene->draw();
-	// Switch to HUD's camera
-	scene->setCamera(hudCamera);
-	// Obtain Render Target Texture for drawing the HUD
-	RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
-
-	// Draw HUD
-	hud.clearColor(0.5f, 0.5f, 0.5f, 1.f);
-	hud.bindFramebuffer();
-	scene->draw();
-	hud.unbindFramebuffer();
-	//Render HUD into the main scene
-	glClearColor(0.5f, 0.5f, 0.5f, 1.f);
-	renderHUD(hud);
+	{
+		glViewport(0, 0, width, height);
+		glDisable(GL_BLEND);
+		scene->draw();
+		glEnable(GL_BLEND);
+	}
+	// 3 - Draw HUD
+	{
+		// Switch to HUD's camera
+		scene->setCamera(hudCamera);
+		// Obtain Render Target Texture for drawing the HUD
+		RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
+		// Draw HUD
+		hud.clearColor(0.5f, 0.5f, 0.5f, 1.f);
+		hud.bindFramebuffer();
+		scene->draw();
+		hud.unbindFramebuffer();
+		//Render HUD into the main scene
+		glClearColor(0.5f, 0.5f, 0.5f, 1.f);
+		renderHUD(hud);
+	}
+	// 4 - Draw DEBUG Shadow Map -> TODO: REMOVED OR COMMENT INNER BLOCK
+	{
+		/**/
+		glViewport(0, 0, width/3.f, height/3.f);
+		ShaderProgram& s_shadowMap = *ShaderProgramManager::getInstance()->get("ShadowMapDebug");
+		shadowMap.renderQuad(&s_shadowMap, "u_ShadowMap");
+		/**/
+	}
 	// Reset Viewport size
-	glViewport(0, 0, App::getInstance()->windowWidth, App::getInstance()->windowHeight);
+	glViewport(0, 0, width, height);
 	// Reset shader to the original one
 	scene->setCamera(mainCamera);
 

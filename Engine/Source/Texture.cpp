@@ -160,7 +160,82 @@ namespace engine
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	/////////////////////////////////////////////////////////////////////// TextureShadowMap
+	TextureShadowMap::TextureShadowMap()
+		: _framebuffer(-1), _width(0), _height(0)
+	{
+		_quad = new Quad2D();
+	}
+	TextureShadowMap::~TextureShadowMap()
+	{
+		glDeleteFramebuffers(1, &_framebuffer);
+		glDeleteTextures(1, &id);
+		delete _quad;
+	}
+	void TextureShadowMap::bind()
+	{
+		glBindTexture(GL_TEXTURE_2D, id);
+	}
+	void TextureShadowMap::unbind()
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	void TextureShadowMap::create(const int width, const int height)
+	{
+		_width = width;
+		_height = height;
+		// Create framebuffer
+		glGenFramebuffers(1, &_framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 
+		// Create color texture
+		glGenTextures(1, &id);
+		glBindTexture(GL_TEXTURE_2D, id);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		// In order to compare in the shader
+		/** /
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+		/**/
+		// Attach depthTexture with the framebuffer
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, id, 0);
+
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+		// Check if the framebuffer creation was a succes
+		ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is not complete!");
+
+		// Unbind framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+	void TextureShadowMap::bindFramebuffer()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+		glViewport(0, 0, _width, _height);
+		glClearDepth(1.f);
+		glClear(GL_DEPTH_BUFFER_BIT);
+	}
+	void TextureShadowMap::unbindFramebuffer()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+	void TextureShadowMap::renderQuad(ShaderProgram* shader, const std::string& textureUniform)
+	{
+		shader->bind();
+		shader->setUniform1i(textureUniform, 0);
+
+		glBindTextureUnit(0, id);
+
+		glDisable(GL_DEPTH_TEST);
+		_quad->draw();
+		glEnable(GL_DEPTH_TEST);
+
+		glBindTextureUnit(0, 0);
+	}
 	/////////////////////////////////////////////////////////////////////// SAMPLERs
 	Sampler::Sampler()
 	{
