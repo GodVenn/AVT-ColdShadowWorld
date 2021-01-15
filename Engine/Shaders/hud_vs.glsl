@@ -3,7 +3,6 @@
 in vec3 inPosition;
 in vec3 inNormal;
 
-out vec4 exPosition;
 out vec3 exNormal;
 uniform mat4 ModelMatrix;
 uniform ViewProjectionMatrices
