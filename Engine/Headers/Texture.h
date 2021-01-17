@@ -9,6 +9,7 @@ namespace engine
 	class Texture2D;
 	class RenderTargetTexture;
 	class TextureShadowMap;
+	class CubeMap;
 	struct TextureInfo;
 
 	class Sampler;
@@ -55,7 +56,16 @@ namespace engine
 		virtual void unbind() override;
 		void load(const std::string& filename);
 	};
+	///////////////////////////////////////////////////////////////////////
+	class CubeMap : public Texture
+	{
+	public:
+		virtual void bind() override;
+		virtual void unbind() override;
+		void load(const std::vector<std::string>& filenames);
+	};
 
+	///////////////////////////////////////////////////////////////////////
 	class Quad2D
 	{
 	public:

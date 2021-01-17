@@ -120,6 +120,9 @@
     <ClCompile Include="Source\Follow2DCameraController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\PerlinNoise.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\Engine.h">
@@ -227,6 +230,9 @@
     <ClInclude Include="Headers\Follow2DCameraController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\PerlinNoise.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Shader_v.glsl">
@@ -263,5 +269,7 @@
     <None Include="Shaders\shadowMap_fs.glsl" />
     <None Include="Shaders\ShadowMapDebug_vs.glsl" />
     <None Include="Shaders\ShadowMapDebug_fs.glsl" />
+    <None Include="Shaders\skybox_fs.glsl" />
+    <None Include="Shaders\skybox_vs.glsl" />
   </ItemGroup>
 </Project>

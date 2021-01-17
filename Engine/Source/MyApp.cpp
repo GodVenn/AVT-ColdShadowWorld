@@ -6,7 +6,7 @@ using namespace engine;
 // Note: This flag is used to run the engine with a pre-maded terrain
 //		 intead of the procedurally generated one. Change to 0 in order
 //		 to use the procedural terrain.
-#define TEST_TERRAIN 1
+#define TEST_TERRAIN 0
 
 class MyApp : public IApp, IUpdatable
 {
@@ -31,11 +31,14 @@ private:
 	/// BINDING POINTs
 	const int UBO_CAMERA = 0;
 
+	// Terrain
+	float terrainMaxHeight = 50;
+
 	/// CAMERA SETUP VALUES
 	// Main Camera
 	Camera* mainCamera = nullptr;
 	CameraController* camController = nullptr;
-	const Vec3 initialEye = Vec3(0.0f, 5.0f, 5.0f);
+	const Vec3 initialEye = Vec3(0.0f, 5.0f + terrainMaxHeight, 5.0f);
 	const Vec3 initialCenter = Vec3(0.0f, 0.0f, -1.0f);
 	const Vec3 initialUp = Vec3(0.0f, 1.0f, 0.0f);
 	const float fovThreshold = 45.f;
@@ -45,6 +48,8 @@ private:
 	const float far = 100.f;
 
 	float aspect = 0.f;
+
+
 
 	// HUD Camera
 	Camera* hudCamera = nullptr;
@@ -66,7 +71,7 @@ private:
 	const float cameraSensitivity = 0.05f;
 
 	// Gooch and Shadow
-	Vec3 LightPos = Vec3(2.f, 2.f, -4.f); 
+	Vec3 LightPos = Vec3(0.f, 0.f, -4.f); 
 	float silhouetteOffset = 0.015f;
 
 	void createTextures();
@@ -161,16 +166,6 @@ void MyApp::createShaderPrograms()
 {
 	const std::string shaderFolder = "Shaders\\";
 	/**/
-	ShaderProgram* penrose = new ShaderProgram();
-	penrose->addShader(shaderFolder + "cube_vs.glsl", GL_VERTEX_SHADER);
-	penrose->addShader(shaderFolder + "cube_fs.glsl", GL_FRAGMENT_SHADER);
-	penrose->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
-	penrose->addAttribute(Mesh::TEXCOORDS, engine::TEXCOORDS_ATTRIBUTE);
-	penrose->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
-	penrose->addUniform(engine::MODEL_MATRIX);
-	penrose->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
-	penrose->create();
-	ShaderProgramManager::getInstance()->add("PenroseCube", penrose);
 
 	ShaderProgram* textureShader = new ShaderProgram();
 	textureShader->addShader(shaderFolder + "heightMap_vs.glsl", GL_VERTEX_SHADER);
@@ -266,6 +261,16 @@ void MyApp::createShaderPrograms()
 	shadowDebug->create();
 	ShaderProgramManager::getInstance()->add("ShadowMapDebug", shadowDebug);
 
+	ShaderProgram* skybox = new ShaderProgram();
+	skybox->addShader(shaderFolder + "skybox_vs.glsl", GL_VERTEX_SHADER);
+	skybox->addShader(shaderFolder + "skybox_fs.glsl", GL_FRAGMENT_SHADER);
+	skybox->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	skybox->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	skybox->addUniform(engine::MODEL_MATRIX);
+	skybox->addUniform("skybox");
+	skybox->create();
+	ShaderProgramManager::getInstance()->add("Skybox", skybox);
+
 }
 
 /////////////////////////////////////////////////////////////////////// TEXTUREs
@@ -299,6 +304,21 @@ void MyApp::createTextures()
 	TextureShadowMap* shadowMap = new TextureShadowMap();
 	shadowMap->create(shadowMapResolution, shadowMapResolution);
 	TextureManager::getInstance()->add("ShadowMap", (TextureShadowMap*)shadowMap);
+
+	// Skybox
+	CubeMap* SkyBox = new CubeMap();
+	std::vector<std::string> faces = 
+	{
+		"Textures\\Skybox\\right.png",
+		"Textures\\Skybox\\left.png",
+		"Textures\\Skybox\\up.png",
+		"Textures\\Skybox\\down.png",
+		"Textures\\Skybox\\front.png",
+		"Textures\\Skybox\\back.png"
+	};
+	SkyBox->load(faces);
+	TextureManager::getInstance()->add("Skybox", SkyBox);
+
 }
 
 /////////////////////////////////////////////////////////////////////// MESHes
@@ -318,15 +338,17 @@ void MyApp::createMeshes()
 	MeshManager::getInstance()->add("TestTerrain", testTerrain);
 #else
 	// Terrain
-	float terrainWidth = 10;
-	float terrainLength = 5;
-	float terrainMaxHeight = 0.1f;
-	unsigned int terrainSimplicity = 4;
+	float terrainWidth = 100;
+	float terrainLength = 100;
+	unsigned int terrainSimplicity = 1;
 	bool calculateNormals = true;
+	bool flatShading = true;
 	TerrainBuilder terrainBuilder = TerrainBuilder(terrainWidth, terrainLength, terrainSimplicity, terrainMaxHeight, calculateNormals);
+	terrainBuilder.flatShading = flatShading;
 
 	const std::string heightMap = "Textures\\earthbump1k.jpg";
-	terrainBuilder.setHeightMap(heightMap);
+	//terrainBuilder.setHeightMap(heightMap);
+	terrainBuilder.generateHeightMap(100, 100, 4, 0.8f, 2.0f);
 	Mesh* terrain = terrainBuilder.buildMesh();
 	MeshManager::getInstance()->add("Terrain", terrain);
 #endif // TEST_TERRAIN
@@ -430,6 +452,17 @@ void MyApp::createMainScene()
 	n_Silhouette->setShaderProgram(s_Silhouette);
 	n_Silhouette->setCallback(backModeCB);
 #endif // TEST_TERRAIN
+
+	// Skybox
+	SceneNode* skybox = scene->createNode();
+	skybox->setMesh(MeshManager::getInstance()->get("Cube"));
+	ShaderProgram* skyBoxShader = ShaderProgramManager::getInstance()->get("Skybox");
+	skybox->setShaderProgram(skyBoxShader);
+	TextureInfo* texInfoSkybox = new TextureInfo(GL_TEXTURE_CUBE_MAP, 0, "skybox",
+		TextureManager::getInstance()->get("Skybox"), 0);
+	skybox->addTextureInfo(texInfoSkybox);
+	skybox->setCallback(backModeCB);
+
 }
 
 void MyApp::createShadowMapScene()

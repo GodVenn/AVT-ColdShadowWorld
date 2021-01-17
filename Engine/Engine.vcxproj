@@ -190,6 +190,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Source\PerlinNoise.cpp" />
     <ClCompile Include="Source\Quaternion.cpp" />
     <ClCompile Include="Source\SamplerManager.cpp" />
     <ClCompile Include="Source\SceneGraph.cpp" />
@@ -225,6 +226,7 @@
     <ClInclude Include="Headers\Mesh.h" />
     <ClInclude Include="Headers\MeshManager.h" />
     <ClInclude Include="Headers\pch.h" />
+    <ClInclude Include="Headers\PerlinNoise.h" />
     <ClInclude Include="Headers\Quaternion.h" />
     <ClInclude Include="Headers\SamplerManager.h" />
     <ClInclude Include="Headers\SceneGraph.h" />
@@ -264,6 +266,8 @@
     <None Include="Shaders\shadowMap_vs.glsl" />
     <None Include="Shaders\silhouette_fs.glsl" />
     <None Include="Shaders\silhouette_vs.glsl" />
+    <None Include="Shaders\skybox_fs.glsl" />
+    <None Include="Shaders\skybox_vs.glsl" />
     <None Include="Shaders\textureFBO_fs.glsl" />
     <None Include="Shaders\textureFBO_vs.glsl" />
   </ItemGroup>
