@@ -55,7 +55,7 @@ namespace engine {
 		/// <param name="octaves">The number of different octaves that make up the final height map</param>
 		/// <param name="persistance">The decreasing factor for amplitude by each octave</param>
 		/// <param name="lacunarity">The increasing factor for frequency by each octave</param>
-		void generateHeightMap(int width, int length, int octaves, float persistance, float lacunarity);
+		void generateHeightMap(int width, int length, int octaves, float persistance, float lacunarity, unsigned int seed);
 
 		/// <summary>
 		/// Builds the terrain mesh from the height map.

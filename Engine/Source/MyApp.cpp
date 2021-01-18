@@ -31,22 +31,37 @@ private:
 	/// BINDING POINTs
 	const int UBO_CAMERA = 0;
 
-	// Terrain
-	float terrainMaxHeight = 50;
+	// MAP GENERATION (PERLIN NOISE PARAMETERS)
+	const float persistence = 0.6f; // in [0, 1]
+	const float lacunarity = 2.2f;	// >=1
+	const int octaves = 6;			// >=1
+		// Sizes determine "level of detail, and are unrelated to the actual size of the final terrain
+	const int mapSizeX = 500;
+	const int mapSizeY = 500;
+	
+	// TERRAIN
+	const float terrainMaxHeight = 15;
+	const float terrainSizeX = 100;
+	const float terrainSizeY = 100;
+	unsigned int terrainSimplicity = 5; // The higher the more simplified compared to height map
 
 	/// CAMERA SETUP VALUES
 	// Main Camera
 	Camera* mainCamera = nullptr;
 	CameraController* camController = nullptr;
-	const Vec3 initialEye = Vec3(0.0f, 5.0f + terrainMaxHeight, 5.0f);
+	const Vec3 initialEye = Vec3(0.0f, terrainMaxHeight, terrainSizeY/2);
 	const Vec3 initialCenter = Vec3(0.0f, 0.0f, -1.0f);
 	const Vec3 initialUp = Vec3(0.0f, 1.0f, 0.0f);
 	const float fovThreshold = 45.f;
 	float fov = 45.f;
 
 	const float near = 0.1f;
-	const float far = 1000.f;
+	const float far = 10000.f;
 	float aspect = 0.f;
+
+	/// CAMERA MOVEMENTS
+	const float cameraSpeed = 2.f; // Seems to work nicely with a value of ~1/50 of terrain size
+	const float cameraSensitivity = 0.05f;
 
 	// HUD Camera
 	Camera* hudCamera = nullptr;
@@ -64,9 +79,6 @@ private:
 	// Quad2D;
 	Quad2D* quad = nullptr;
 
-	/// CAMERA MOVEMENTS
-	const float cameraSpeed = 10.f;
-	const float cameraSensitivity = 0.05f;
 
 	// Gooch and Shadow
 	Vec3 LightPos = Vec3(40.f, 70.f, -40.f); 
@@ -336,17 +348,17 @@ void MyApp::createMeshes()
 	MeshManager::getInstance()->add("TestTerrain", testTerrain);
 #else
 	// Terrain
-	float terrainWidth = 100;
-	float terrainLength = 100;
-	unsigned int terrainSimplicity = 1;
 	bool calculateNormals = true;
 	bool flatShading = true;
-	TerrainBuilder terrainBuilder = TerrainBuilder(terrainWidth, terrainLength, terrainSimplicity, terrainMaxHeight, calculateNormals);
+	TerrainBuilder terrainBuilder = TerrainBuilder(terrainSizeX, terrainSizeY, terrainSimplicity, terrainMaxHeight, calculateNormals);
 	terrainBuilder.flatShading = flatShading;
 
 	const std::string heightMap = "Textures\\earthbump1k.jpg";
 	//terrainBuilder.setHeightMap(heightMap);
-	terrainBuilder.generateHeightMap(100, 100, 4, 0.8f, 2.0f);
+	int seed = time(NULL);
+	std::cout << "[Map Generation] Seed = " << seed << std::endl;
+	terrainBuilder.generateHeightMap(mapSizeX, mapSizeY, octaves, persistence, lacunarity, seed);
+
 	Mesh* terrain = terrainBuilder.buildMesh();
 	MeshManager::getInstance()->add("Terrain", terrain);
 #endif // TEST_TERRAIN
