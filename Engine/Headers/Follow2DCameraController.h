@@ -7,7 +7,7 @@ namespace engine
 	{
 
 	public:
-		Follow2DCameraController(Camera* camera, CameraController* followController, float verticalOffset = 50.0f);
+		Follow2DCameraController(Camera* camera, CameraController* followController, float verticalOffset = 150.0f);
 		~Follow2DCameraController();
 
 		void update(float deltaTime);

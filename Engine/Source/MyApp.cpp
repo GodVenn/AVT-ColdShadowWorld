@@ -45,34 +45,32 @@ private:
 	float fov = 45.f;
 
 	const float near = 0.1f;
-	const float far = 100.f;
-
+	const float far = 1000.f;
 	float aspect = 0.f;
-
-
 
 	// HUD Camera
 	Camera* hudCamera = nullptr;
 	Follow2DCameraController* hudCameraController = nullptr;
+	float HUDoffset = terrainMaxHeight + 50.f;
 
 	// Shadow Map
 	Camera* cameraShadow = nullptr;
 	const float boxSize = 1.f;
 	float nearShadowPlane = 0.01f;
 	float farShadowPlane = 100.f;
-	float boxShadowSize = 4.7f;
+	float boxShadowSize = 100.7f;
 	uint32_t shadowMapResolution = 4096 * 3;
 
 	// Quad2D;
 	Quad2D* quad = nullptr;
 
 	/// CAMERA MOVEMENTS
-	const float cameraSpeed = 6.0f;
+	const float cameraSpeed = 10.f;
 	const float cameraSensitivity = 0.05f;
 
 	// Gooch and Shadow
-	Vec3 LightPos = Vec3(0.f, 0.f, -4.f); 
-	float silhouetteOffset = 0.015f;
+	Vec3 LightPos = Vec3(40.f, 70.f, -40.f); 
+	float silhouetteOffset = 0.08f;
 
 	void createTextures();
 	void createMeshes();
@@ -368,13 +366,13 @@ void MyApp::setupCamera()
 	float initialYaw = -90.0f;
 	float initialPitch = 0.0f;
 	camController = new CameraController(*mainCamera, height, width, initialYaw, initialPitch);
-
+	camController->movementSpeed = cameraSpeed;
 	// HUD camera
 	hudCamera = new Camera({initialEye.x, initialEye.y + 20, initialEye.z}, initialEye, initialUp);
 	float zoomLevel = 10.0f;
 	//hudCamera->setPerspectiveProjectionMatrix(fov, aspect, near, far);
 	hudCamera->setOrthographicProjectionMatrix(aspect * -zoomLevel, aspect * zoomLevel, -zoomLevel, zoomLevel, near, far);
-	hudCameraController = new Follow2DCameraController(hudCamera, camController);
+	hudCameraController = new Follow2DCameraController(hudCamera, camController, HUDoffset);
 
 	// Shadow Map Camera
 	cameraShadow = new Camera(LightPos, initialEye, initialUp);
@@ -598,9 +596,7 @@ void MyApp::drawSceneGraph()
 	SceneGraph* scene = SceneGraphManager::getInstance()->get("Main");
 	{
 		glViewport(0, 0, width, height);
-		glDisable(GL_BLEND);
 		scene->draw();
-		glEnable(GL_BLEND);
 	}
 	// 3 - Draw HUD
 	{
