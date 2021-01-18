@@ -174,6 +174,7 @@
     <ClCompile Include="Source\Animation.cpp" />
     <ClCompile Include="Source\AnimatorManager.cpp" />
     <ClCompile Include="Source\CameraController.cpp" />
+    <ClCompile Include="Source\Follow2DCameraController.cpp" />
     <ClCompile Include="Source\Input.cpp" />
     <ClCompile Include="Source\MyApp.cpp" />
     <ClCompile Include="Source\App.cpp" />
@@ -190,6 +191,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Source\PerlinNoise.cpp" />
     <ClCompile Include="Source\Quaternion.cpp" />
     <ClCompile Include="Source\SamplerManager.cpp" />
     <ClCompile Include="Source\SceneGraph.cpp" />
@@ -214,6 +216,7 @@
     <ClInclude Include="Headers\Camera.h" />
     <ClInclude Include="Headers\CameraController.h" />
     <ClInclude Include="Headers\Constants.h" />
+    <ClInclude Include="Headers\Follow2DCameraController.h" />
     <ClInclude Include="Headers\Input.h" />
     <ClInclude Include="Headers\NodeCallbacks.h" />
     <ClInclude Include="Headers\Engine.h" />
@@ -225,6 +228,7 @@
     <ClInclude Include="Headers\MeshManager.h" />
     <ClInclude Include="Headers\ParticleSystem.h" />
     <ClInclude Include="Headers\pch.h" />
+    <ClInclude Include="Headers\PerlinNoise.h" />
     <ClInclude Include="Headers\Quaternion.h" />
     <ClInclude Include="Headers\SamplerManager.h" />
     <ClInclude Include="Headers\SceneGraph.h" />
@@ -246,15 +250,31 @@
   <ItemGroup>
     <None Include="Shaders\cube_fs.glsl" />
     <None Include="Shaders\cube_vs.glsl" />
+    <None Include="Shaders\flatTexture_fs.glsl" />
+    <None Include="Shaders\flatTexture_vs.glsl" />
     <None Include="Shaders\frame_fs.glsl" />
     <None Include="Shaders\frame_vs.glsl" />
+    <None Include="Shaders\goochShading_fs.glsl" />
+    <None Include="Shaders\goochShading_vs.glsl" />
     <None Include="Shaders\heightMap_fs.glsl" />
     <None Include="Shaders\heightMap_vs.glsl" />
     <None Include="Shaders\particle_fs.glsl" />
     <None Include="Shaders\particle_geom.glsl" />
     <None Include="Shaders\particle_vs.glsl" />
+    <None Include="Shaders\hud_fs.glsl" />
+    <None Include="Shaders\hud_vs.glsl" />
     <None Include="Shaders\Shader_f.glsl" />
     <None Include="Shaders\Shader_v.glsl" />
+    <None Include="Shaders\ShadowMapDebug_fs.glsl" />
+    <None Include="Shaders\ShadowMapDebug_vs.glsl" />
+    <None Include="Shaders\shadowMap_fs.glsl" />
+    <None Include="Shaders\shadowMap_vs.glsl" />
+    <None Include="Shaders\silhouette_fs.glsl" />
+    <None Include="Shaders\silhouette_vs.glsl" />
+    <None Include="Shaders\skybox_fs.glsl" />
+    <None Include="Shaders\skybox_vs.glsl" />
+    <None Include="Shaders\textureFBO_fs.glsl" />
+    <None Include="Shaders\textureFBO_vs.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

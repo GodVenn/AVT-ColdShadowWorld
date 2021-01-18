@@ -1,11 +1,31 @@
 #include "..\Headers\pch.h"
 #include "..\Headers\Base.h"
 #include "..\Headers\TerrainBuilder.h"
+#include "..\Headers\PerlinNoise.h"
 #include <stb_image.h>
 #include <map>
+#include <limits>
 
 
 namespace engine {
+
+	/// <summary>
+	/// Different base heights result in different steepness to simulate real terrain.
+	/// </summary>
+	/// <param name="mapHeight"></param>
+	/// <returns></returns>
+	float heightCurve(float mapHeight, float maxHeight)
+	{
+		const float groundLevel = 0.3f;
+		float meshHeight;
+
+		if (mapHeight < groundLevel)
+			meshHeight = mapHeight;
+		else
+			meshHeight = mapHeight * mapHeight * maxHeight;
+
+		return meshHeight;
+	}
 
 	Vec3 TerrainBuilder::calculateVertex(int indexX, int indexY, float triangleSizeX, float triangleSizeY)
 	{
@@ -15,7 +35,7 @@ namespace engine {
 		ASSERT(i < _heightMap.size() || j < _heightMap[0].size(), "Height map access out of bounds for terrain generation.");
 
 		float inputHeight = _heightMap[i][j];
-		return Vec3(indexX * triangleSizeX - ((float)terrainSizeX / 2), inputHeight * maxTerrainHeight, -indexY * triangleSizeY + ((float)terrainSizeY / 2));
+		return Vec3(indexX * triangleSizeX - ((float)terrainSizeX / 2), heightCurve(inputHeight, maxTerrainHeight), -indexY * triangleSizeY + ((float)terrainSizeY / 2));
 	}
 
 	Vec2 TerrainBuilder::calculateTexcoord(int indexX, int indexY, int dimX, int dimY)
@@ -173,6 +193,63 @@ namespace engine {
 #endif
 	}
 
+	void TerrainBuilder::generateHeightMap(int width, int length, int octaves, float persistance, float lacunarity, unsigned int seed = 0)
+	{
+#if _DEBUG
+		std::cout << "TerrainBuilder: Generating Height Map..." << std::endl;
+		double timeStart = glfwGetTime();
+#endif
+		
+		float minNoiseValue = std::numeric_limits<float>::max();
+		float maxNoiseValue = std::numeric_limits<float>::min();
+
+		PerlinNoise perlin;
+		if (seed > 0)
+			perlin = PerlinNoise(seed);
+
+		for (int y = 0; y < length; y++){
+			std::vector<float> line;
+
+			for (int x = 0; x < width; x++)
+			{
+				float frequency = 1;
+				float amplitude = 1;
+				float noiseHeight = 0;
+
+				for (int i = 0; i < octaves; i++)
+				{
+					float noiseSampleX = (x / (float)width) * frequency;
+					float noiseSampleY = (y / (float)length) * frequency;
+					
+					float perlinHeight = perlin.noise(noiseSampleX, noiseSampleY, 0);					
+					noiseHeight += perlinHeight * amplitude;
+
+					frequency *= lacunarity;
+					amplitude *= persistance;
+				}
+				if (noiseHeight > maxNoiseValue) {
+					maxNoiseValue = noiseHeight;
+				}
+				else if (noiseHeight < minNoiseValue) {
+					minNoiseValue = noiseHeight;
+				}
+				line.push_back(noiseHeight);
+			}
+			_heightMap.push_back(line);
+		}
+		for (int y = 0; y < length; y++) {
+			for (int x = 0; x < width; x++)
+			{
+				// Inverse lerp to normalize height map
+				_heightMap[x][y] = (_heightMap[x][y] - minNoiseValue) / (maxNoiseValue - minNoiseValue);
+			}
+		}
+
+#if _DEBUG 
+		std::cout << "TerrainBuilder: Height Map Generated! (" << width << " x " << length << ") (" << glfwGetTime() - timeStart << "s passed)" << std::endl << std::endl;
+#endif
+	}
+
 	Mesh* TerrainBuilder::buildMesh()
 	{
 #if _DEBUG 
@@ -184,9 +261,9 @@ namespace engine {
 		const float triangleSizeX = terrainSizeX / (dimX - 1);
 		const float triangleSizeY = terrainSizeY / (dimY - 1);
 
-		// Each vertice/point in a LINE a triangle from the other 2 closest points
+		// Each vertice/point in a LINE forms a triangle from the other 2 closest points
 		// The last line and column are not "origins" of triangles because they are already included in other triangles.
-		// Each origin vertex will generate 2 triangles (a quad)
+		// Each origin vertex (iteration) will generate 2 triangles (a quad)
 		Vec3 vertex1, vertex2, vertex3, vertex4, normal;
 		Vec2 texCoord1, texCoord2, texCoord3, texCoord4;
 		std::vector<Vec3> vertices;
@@ -228,9 +305,24 @@ namespace engine {
 				vertex4 = calculateVertex(indexX4, indexY4, triangleSizeX, triangleSizeY);
 				texCoord4 = calculateTexcoord(indexX4, indexY4, dimX, dimY);
 
-				// Triangle Normals (Reverse order for later calculation)
-				triangleNormals.push_back(calculateTriangleNormal(vertex1, vertex3, vertex4));
-				triangleNormals.push_back(calculateTriangleNormal(vertex1, vertex2, vertex3));
+				if (this->calculateNormals) {
+					Vec3 normal1 = calculateTriangleNormal(vertex1, vertex2, vertex3);
+					Vec3 normal2 = calculateTriangleNormal(vertex1, vertex3, vertex4);
+					if (flatShading) {
+						normals.push_back(normal1);
+						normals.push_back(normal1);
+						normals.push_back(normal1);
+						normals.push_back(normal2);
+						normals.push_back(normal2);
+						normals.push_back(normal2);
+					}
+					else {
+						// Triangle Normals (Reverse order for later calculation)
+						triangleNormals.push_back(normal2);
+						triangleNormals.push_back(normal1);
+					}
+
+				}
 
 				// First triangle
 				vertices.push_back(vertex1);
@@ -258,13 +350,10 @@ namespace engine {
 		std::cout << "TerrainBuilder: Vertices Created! (" << glfwGetTime() - timeStart << "s passed)" << std::endl << std::endl;
 #endif
 
-		if (this->calculateNormals)
+		if (this->calculateNormals && !this->flatShading)
 		{
-
-
-
 #if _DEBUG 
-			std::cout << "TerrainBuilder: Calculating normals..." << std::endl;
+			std::cout << "TerrainBuilder: Calculating vertex normals..." << std::endl;
 			timeStart = glfwGetTime();
 #endif
 			// Calculate normals
@@ -436,6 +525,7 @@ namespace engine {
 #if _DEBUG 
 		std::cout << "TerrainBuilder: Buffer Object Created! (" << glfwGetTime() - timeStart << "s passed)" << std::endl << std::endl;
 #endif
+		this->_heightMap.clear();
 		return this->terrainMesh;
 	}
 }

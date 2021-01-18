@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec4 in_Position;
+in vec3 in_Position;
 in vec4 in_Color;
 out vec4 ex_Color;
 
@@ -17,6 +17,6 @@ uniform ViewProjectionMatrices
 
 void main(void)
 {
-	gl_Position = Camera.ProjectionMatrix * Camera.ViewMatrix * ModelMatrix * in_Position;
+	gl_Position = Camera.ProjectionMatrix * Camera.ViewMatrix * ModelMatrix * vec4(in_Position,1);
 	ex_Color = in_Color * contrast;
 }

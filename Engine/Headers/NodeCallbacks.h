@@ -3,7 +3,25 @@
 
 namespace engine
 {
-	
+	/////////////////////////////////////////////////////////////////////// BackMode
+	class BackMode : public ISceneNodeCallBack
+	{
+	public:
+		BackMode() {};
+		~BackMode() {};
+
+		virtual void beforeDraw(SceneNode* node) override
+		{
+			glCullFace(GL_FRONT);// Removing front faces
+		   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		virtual void afterDraw(SceneNode* node) override
+		{
+			glCullFace(GL_BACK); // Removing back faces
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //DRAW WIREFRAME
+		}
+
+	};
 	/////////////////////////////////////////////////////////////////////// DisableDepthCallback
 	class DisableDepthCallback : public ISceneNodeCallBack
 	{

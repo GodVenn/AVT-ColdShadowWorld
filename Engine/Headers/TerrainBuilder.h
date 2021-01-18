@@ -22,6 +22,7 @@ namespace engine {
 		float maxTerrainHeight;
 		unsigned int simplificationFactor;
 		bool calculateNormals;
+		bool flatShading = true;
 		Mesh* terrainMesh;
 	
 		TerrainBuilder();
@@ -45,6 +46,16 @@ namespace engine {
 		/// </summary>
 		/// <returns></returns>
 		void setHeightMap(const std::string& Texturefilepath);
+
+		/// <summary>
+		/// Generate a height map from perlin noise
+		/// </summary>
+		/// <param name="width">Number of "pixels" in X-direction</param>
+		/// <param name="length">Number of "pixels" in Y-direction</param>
+		/// <param name="octaves">The number of different octaves that make up the final height map</param>
+		/// <param name="persistance">The decreasing factor for amplitude by each octave</param>
+		/// <param name="lacunarity">The increasing factor for frequency by each octave</param>
+		void generateHeightMap(int width, int length, int octaves, float persistance, float lacunarity, unsigned int seed);
 
 		/// <summary>
 		/// Builds the terrain mesh from the height map.

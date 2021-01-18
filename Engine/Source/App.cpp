@@ -28,7 +28,7 @@ namespace engine
 		setupGLEW();
 		setupOpenGL();
 
-		setupErrorCallback();
+		//setupErrorCallback();
 		glApp->initApp();
 	}
 	/////////////////////////////////////////////////////////////////////// RUN
@@ -139,14 +139,22 @@ namespace engine
 			checkOpenGLInfo();
 	#endif
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+		// -- Depth -- //
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
 		glDepthMask(GL_TRUE);
 		glDepthRange(0.0, 1.0);
 		glClearDepth(1.0);
+		// -- Cull face -- //
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 		glFrontFace(GL_CCW);
+		// -- Stencil -- //
+		glEnable(GL_STENCIL_TEST);
+		// -- Blending -- //
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		// -- Viewport -- //
 		glViewport(0, 0, this->windowWidth, this->windowHeight);
 	}
 
