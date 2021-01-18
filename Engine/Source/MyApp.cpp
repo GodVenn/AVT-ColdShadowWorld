@@ -69,8 +69,10 @@ private:
 	const float cameraSpeed = 2.f; // Seems to work nicely with a value of ~1/50 of terrain size
 	const float cameraSensitivity = 0.05f;
 
-	//Default Particle
+	//Particles
 	Particle default_Particle;
+	float maxTime = 0.01f; //Particle respawn time
+	float timer = maxTime;
 
 	// HUD Camera
 	Camera* hudCamera = nullptr;
@@ -568,8 +570,6 @@ void MyApp::destroyCameras()
 }
 
 ///////////////////////////////////////////////////////////////////// DRAW AND UPDATEs
-float maxTime = 0.01f;
-float timer = maxTime;
 void MyApp::renderQuad(ShaderProgram* shader, Texture* texture, const std::string& textureUniform)
 {
 	shader->bind();
