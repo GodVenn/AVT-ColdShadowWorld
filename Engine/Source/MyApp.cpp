@@ -381,7 +381,7 @@ void MyApp::createMeshes()
 
 	const std::string heightMap = "Textures\\earthbump1k.jpg";
 	//terrainBuilder.setHeightMap(heightMap);
-	int seed = time(NULL);
+	int seed = (int)time(NULL);
 	std::cout << "[Map Generation] Seed = " << seed << std::endl;
 	terrainBuilder.generateHeightMap(mapSizeX, mapSizeY, octaves, persistence, lacunarity, seed);
 
@@ -523,12 +523,11 @@ void MyApp::createShadowMapScene()
 	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("ShadowMap");
 	terrainNode->setShaderProgram(terrainShader);
 #endif // TEST_TERRAIN
-}
-
 
 	TextureInfo* texInfoS = new TextureInfo(GL_TEXTURE1, 1, "snowText", TextureManager::getInstance()->get("Snow"));
 	ParticleSystem::getInstance()->text = texInfoS;
 }
+
 ///////////////////////////////////////////////////////////////////// SIMULATION
 void MyApp::createSimulation()
 {
@@ -642,7 +641,22 @@ void MyApp::drawSceneGraph()
 		glViewport(0, 0, width, height);
 		scene->draw();
 	}
-	// 3 - Draw HUD
+
+	// 3 - Snow
+	{
+		float deltaTime = static_cast<float>(App::getInstance()->deltaTime);
+
+		timer -= deltaTime;
+		if (timer <= 0.0f)
+		{
+			for (int i = 0; i < 1; i++)
+				ParticleSystem::getInstance()->AddParticle(default_Particle, SceneGraphManager::getInstance()->get("Main")->getCamera());
+			timer = maxTime;
+		}
+		ParticleSystem::getInstance()->OnUpdate(deltaTime, SceneGraphManager::getInstance()->get("Main")->getCamera());
+	}
+
+	// 4 - Draw HUD
 	{
 		// Switch to HUD's camera
 		scene->setCamera(hudCamera);
@@ -657,10 +671,10 @@ void MyApp::drawSceneGraph()
 		glClearColor(0.5f, 0.5f, 0.5f, 1.f);
 		renderHUD(hud);
 	}
-	// 4 - Draw DEBUG Shadow Map -> TODO: REMOVED OR COMMENT INNER BLOCK
+	// 5 - Draw DEBUG Shadow Map -> TODO: REMOVED OR COMMENT INNER BLOCK
 	{
 		/**/
-		glViewport(0, 0, width/3.f, height/3.f);
+		glViewport(0, 0, (int)(width/3.f), (int)(height/3.f));
 		ShaderProgram& s_shadowMap = *ShaderProgramManager::getInstance()->get("ShadowMapDebug");
 		shadowMap.renderQuad(&s_shadowMap, "u_ShadowMap");
 		/**/
@@ -669,17 +683,6 @@ void MyApp::drawSceneGraph()
 	glViewport(0, 0, width, height);
 	// Reset shader to the original one
 	scene->setCamera(mainCamera);
-
-	float deltaTime = static_cast<float>(App::getInstance()->deltaTime);
-
-	timer -= deltaTime;
-	if (timer <= 0.0f)
-	{
-		for (int i = 0; i < 1; i++)
-			ParticleSystem::getInstance()->AddParticle(default_Particle, SceneGraphManager::getInstance()->get("Main")->getCamera());
-		timer = maxTime;
-	}
-	ParticleSystem::getInstance()->OnUpdate(deltaTime, SceneGraphManager::getInstance()->get("Main")->getCamera());
 }
 
 void MyApp::processMovement()
@@ -694,6 +697,15 @@ void MyApp::processMovement()
 	if (right || left || forward || backward)
 	{
 		camController->setMovement(right, left, forward, backward);
+		ParticleSystem::getInstance()->SetCameraMovement(camController->getMovement());
+	}
+
+	if (glfwGetKey(win, GLFW_KEY_L) == GLFW_PRESS) //FORCE EMIT PARTICLE
+	{
+		//std::cout << "Emit!\n";
+		for (int i = 0; i < 1; i++)
+			ParticleSystem::getInstance()->AddParticle(default_Particle, SceneGraphManager::getInstance()->get("Main")->getCamera());
+	}
 }
 
 void MyApp::onUpdate(float deltaTime)

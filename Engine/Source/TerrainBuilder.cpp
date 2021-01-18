@@ -221,7 +221,7 @@ namespace engine {
 					float noiseSampleX = (x / (float)width) * frequency;
 					float noiseSampleY = (y / (float)length) * frequency;
 					
-					float perlinHeight = perlin.noise(noiseSampleX, noiseSampleY, 0);					
+					float perlinHeight = (float)perlin.noise(noiseSampleX, noiseSampleY, 0);					
 					noiseHeight += perlinHeight * amplitude;
 
 					frequency *= lacunarity;
