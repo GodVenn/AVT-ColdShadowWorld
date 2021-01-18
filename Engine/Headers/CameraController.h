@@ -39,6 +39,11 @@ namespace engine
 		/// This is where the actual movement is implemented.
 		/// </summary>
 		void update(const float deltaTime);
+
+		/// <summary>
+		/// Returns the camera movement processed this frame
+		/// </summary>
+		Vec3 getMovement();
 	private:
 		Vec3 _cameraMovement;
 		float _lastX;

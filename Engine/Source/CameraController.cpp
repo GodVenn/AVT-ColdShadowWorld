@@ -85,4 +85,8 @@ namespace engine {
 
 		this->_cameraMovement = Vec3();
 	}
+	Vec3 CameraController::getMovement()
+	{
+		return this->_cameraMovement;
+	}
 }

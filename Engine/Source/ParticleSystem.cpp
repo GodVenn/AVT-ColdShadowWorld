@@ -31,7 +31,7 @@ namespace engine {
 			}
 
 			particle.LifeRemaining -= (float)ts;
-			particle.Position += particle.Velocity * (float)ts;
+			particle.Position += (particle.Velocity + cameraMovement) * (float)ts;
 
 
 			int k = counter * OFFSET_ARRAY;
@@ -48,6 +48,9 @@ namespace engine {
 			counter++;
 		}
 
+		//Reset camera movement
+		cameraMovement = Vec3(0.0f);
+
 		std::size_t size = sizeof(float) * (std::size_t)(((std::size_t)POOL_SIZE) * (std::size_t)OFFSET_ARRAY);
 		glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -63,24 +66,36 @@ namespace engine {
 
 	void ParticleSystem::Render(Camera* cam)
 	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		ParticleShader->bind();
+		text->updateShader(ParticleShader);
 		cam->draw();
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_POINTS, 0, 100);
+		glDrawArrays(GL_POINTS, 0, POOL_SIZE);
 		ParticleShader->unbind();
-
+		glDisable(GL_BLEND);
 	}
 
-	void ParticleSystem::AddParticle(const Particle& particleProps)
+	void ParticleSystem::AddParticle(const Particle& particleProps, Camera* cam)
 	{
 		Particle& particle = Particle_Pool[Particle_Pool_Index];
 		particle.Active = true;
 		particle.Position = particleProps.Position;
 
+		//Randomly distribute particles in a circle around the position
+		float t = 2 * M_PI * ((rand() % 100) / 100.0f);
+		float u = ((rand() % 100) / 100.0f) + ((rand() % 100) / 100.0f);
+		float r = u > 1.0f ? 2 - u : u;
+		particle.Position.x = cam->eye.x + (r * cos(t))* circleSize;
+		particle.Position.y += cam->eye.y;
+		particle.Position.z = cam->eye.z + (r * sin(t))* circleSize;
+
+
 		particle.Velocity = particleProps.Velocity;
-		particle.Velocity.x = ((rand() % 100) / 100.0f - 0.5f);
-		particle.Velocity.y = ((rand() % 100) / 100.0f - 0.5f);
-		particle.Velocity.z = ((rand() % 100) / 100.0f - 0.5f);
+		particle.Velocity.x = ((rand() % 100) / 100.0f - 0.5f) / 5.0f;
+		particle.Velocity.y = -0.5f;
+		particle.Velocity.z = ((rand() % 100) / 100.0f - 0.5f) / 5.0f;
 
 		particle.Color = particleProps.Color;
 
@@ -89,7 +104,12 @@ namespace engine {
 		particle.Size = particleProps.Size;
 
 		Particle_Pool_Index = ++Particle_Pool_Index % (POOL_SIZE);
-		std::cout << "index: " << Particle_Pool_Index << std::endl;
+		//std::cout << "index: " << Particle_Pool_Index << std::endl;
+	}
+
+	void ParticleSystem::SetCameraMovement(const Vec3& movement)
+	{
+		cameraMovement = movement;
 	}
 
 }

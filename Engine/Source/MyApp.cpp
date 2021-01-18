@@ -169,7 +169,7 @@ void MyApp::createShaderPrograms()
 	particles->addShader(shaderFolder + "particle_fs.glsl", GL_FRAGMENT_SHADER);
 	particles->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
 	particles->addAttribute(1, engine::COLOR_ATTRIBUTE);
-	particles->addUniform("Texture"),
+	particles->addUniform("snowText"),
 	particles->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	particles->create();
 	ShaderProgramManager::getInstance()->add("Particles", particles);
@@ -183,6 +183,11 @@ void MyApp::createTextures()
 	Texture2D* earth = new Texture2D();
 	earth->load(texturePath);
 	TextureManager::getInstance()->add("EarthHeightMap", earth);
+
+	std::string texturePathSnow = TextureFolder + "snow.png";
+	Texture2D* snow = new Texture2D();
+	snow->load(texturePathSnow);
+	TextureManager::getInstance()->add("Snow", snow);
 }
 
 /////////////////////////////////////////////////////////////////////// MESHes
@@ -248,6 +253,9 @@ void MyApp::createSceneGraph()
 	terrainNode->setShaderProgram(terrainShader);
 
 	terrainNode->setMatrix(MatFactory::createTranslationMat4(Vec3(5, 0, 0)));
+
+	TextureInfo* texInfoS = new TextureInfo(GL_TEXTURE1, 1, "snowText", TextureManager::getInstance()->get("Snow"));
+	ParticleSystem::getInstance()->text = texInfoS;
 }
 ///////////////////////////////////////////////////////////////////// SIMULATION
 void MyApp::createSimulation()
@@ -277,7 +285,7 @@ void MyApp::destroyCallbacks()
 }
 
 ///////////////////////////////////////////////////////////////////// DRAW AND UPDATEs
-float maxTime = 0.1f;
+float maxTime = 0.01f;
 float timer = maxTime;
 void MyApp::drawSceneGraph()
 {
@@ -288,7 +296,7 @@ void MyApp::drawSceneGraph()
 	if (timer <= 0.0f)
 	{
 		for (int i = 0; i < 1; i++)
-			ParticleSystem::getInstance()->AddParticle(default_Particle);
+			ParticleSystem::getInstance()->AddParticle(default_Particle, SceneGraphManager::getInstance()->get("Main")->getCamera());
 		timer = maxTime;
 	}
 	ParticleSystem::getInstance()->OnUpdate(deltaTime, SceneGraphManager::getInstance()->get("Main")->getCamera());
@@ -304,13 +312,16 @@ void MyApp::processMovement()
 	int backward = (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS);
 
 	if (right || left || forward || backward)
+	{
 		camController->setMovement(right, left, forward, backward);
+		ParticleSystem::getInstance()->SetCameraMovement(camController->getMovement());
+	}
 
 	if (glfwGetKey(win, GLFW_KEY_L) == GLFW_PRESS) //FORCE EMIT PARTICLE
 	{
-		std::cout << "Emit!\n";
+		//std::cout << "Emit!\n";
 		for (int i = 0; i < 1; i++)
-			ParticleSystem::getInstance()->AddParticle(default_Particle);
+			ParticleSystem::getInstance()->AddParticle(default_Particle, SceneGraphManager::getInstance()->get("Main")->getCamera());
 	}
 }
 
