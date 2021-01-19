@@ -92,7 +92,7 @@ private:
 	Quad2D* quad = nullptr;
 
 	// Gooch and Shadow
-	Vec3 LightPos = Vec3(40.f, 70.f, -40.f); 
+	Vec3 LightPos = Vec3(40.f, 40.f, -40.f); 
 	float silhouetteOffset = 0.03f;
 
 	void createTextures();
