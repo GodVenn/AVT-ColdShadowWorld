@@ -750,7 +750,7 @@ int main(int argc, char* argv[])
 	int is_vsync = 0;
 	int width = 1920;
 	int height = 1080;
-	engine::App::getInstance()->setupWindow(width, height, "AVT Engine", is_fullscreen, is_vsync);
+	engine::App::getInstance()->setupWindow(width, height, "Cold Shadow World", is_fullscreen, is_vsync);
 	engine::App::getInstance()->init();
 	engine::App::getInstance()->run();
 
