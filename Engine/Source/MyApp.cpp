@@ -71,7 +71,7 @@ private:
 
 	//Particles
 	Particle default_Particle;
-	int particlesToSpawn = 5;
+	int particlesToSpawn = 50;
 	float maxTime = 0.0001f; //Particle respawn time
 	float timer = maxTime;
 

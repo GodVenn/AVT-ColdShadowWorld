@@ -105,8 +105,8 @@ namespace engine {
 
 		Particle_Pool_Index = ++Particle_Pool_Index % (POOL_SIZE);
 
-		//if(Particle_Pool_Index % 100 == 0)
-			//std::cout << "index: " << Particle_Pool_Index << std::endl;
+		if(Particle_Pool_Index % 1000 == 0)
+			std::cout << "index: " << Particle_Pool_Index << std::endl;
 	}
 
 	void ParticleSystem::SetCameraMovement(const Vec3& movement)
