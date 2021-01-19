@@ -7,7 +7,7 @@
 #include "Camera.h"
 #include "Texture.h"
 
-#define POOL_SIZE 2000
+#define POOL_SIZE 5000
 #define OFFSET_ARRAY 7
 
 namespace engine
@@ -45,7 +45,7 @@ namespace engine
 		unsigned int VBO, VAO;
 		ShaderProgram* ParticleShader;
 
-		float circleSize = 4.0f;
+		float circleSize = 6.0f;
 		Vec3 cameraMovement;
 	};
 }

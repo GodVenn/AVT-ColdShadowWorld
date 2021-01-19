@@ -71,7 +71,8 @@ private:
 
 	//Particles
 	Particle default_Particle;
-	float maxTime = 0.01f; //Particle respawn time
+	int particlesToSpawn = 5;
+	float maxTime = 0.0001f; //Particle respawn time
 	float timer = maxTime;
 
 	// HUD Camera
@@ -673,7 +674,7 @@ void MyApp::drawSceneGraph()
 		timer -= deltaTime;
 		if (timer <= 0.0f)
 		{
-			for (int i = 0; i < 1; i++)
+			for (int i = 0; i < particlesToSpawn; i++)
 				ParticleSystem::getInstance()->AddParticle(default_Particle, SceneGraphManager::getInstance()->get("Main")->getCamera());
 			timer = maxTime;
 		}
