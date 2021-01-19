@@ -4,6 +4,7 @@
 #include "AnimatorManager.h"
 #include "Constants.h"
 #include "gl.h"
+#include "Input.h"
 #include "NodeCallbacks.h"
 #include "Quaternion.h"
 #include "MeshManager.h"

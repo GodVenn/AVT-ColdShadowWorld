@@ -248,8 +248,8 @@
     <ClInclude Include="Vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\cube_fs.glsl" />
-    <None Include="Shaders\cube_vs.glsl" />
+    <None Include="Shaders\normals_fs.glsl" />
+    <None Include="Shaders\normals_vs.glsl" />
     <None Include="Shaders\flatTexture_fs.glsl" />
     <None Include="Shaders\flatTexture_vs.glsl" />
     <None Include="Shaders\frame_fs.glsl" />

@@ -80,6 +80,12 @@ namespace engine
 
 	}
 	/////////////////////////////////////////////////////////////////////// CUBEMAP
+	static const GLenum CUBEMAP_TEXTURE[6] =
+	{
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+	};
 	void CubeMap::bind()
 	{
 		glBindTexture(GL_TEXTURE_2D, id);

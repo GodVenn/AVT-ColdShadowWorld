@@ -247,12 +247,6 @@
     <None Include="Shaders\Shader_f.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\cube_fs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\cube_vs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Shaders\frame_vs.glsl">
       <Filter>Shaders</Filter>
     </None>
@@ -280,5 +274,11 @@
     <None Include="Shaders\particle_fs.glsl" />
     <None Include="Shaders\particle_geom.glsl" />
     <None Include="Shaders\particle_vs.glsl" />
+    <None Include="Shaders\normals_vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\normals_fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

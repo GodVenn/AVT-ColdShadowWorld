@@ -90,10 +90,9 @@ private:
 	// Quad2D;
 	Quad2D* quad = nullptr;
 
-
 	// Gooch and Shadow
 	Vec3 LightPos = Vec3(40.f, 70.f, -40.f); 
-	float silhouetteOffset = 0.08f;
+	float silhouetteOffset = 0.03f;
 
 	void createTextures();
 	void createMeshes();
@@ -102,6 +101,7 @@ private:
 	void createSceneGraph();
 	void createMainScene();
 	void createShadowMapScene();
+	void createHUDScene();
 	void createSimulation();
 
 	void destroyManagers();
@@ -187,7 +187,16 @@ void MyApp::createShaderPrograms()
 {
 	const std::string shaderFolder = "Shaders\\";
 	/**/
-
+	ShaderProgram* normalsShader = new ShaderProgram();
+	normalsShader->addShader(shaderFolder + "normals_vs.glsl", GL_VERTEX_SHADER);
+	normalsShader->addShader(shaderFolder + "normals_fs.glsl", GL_FRAGMENT_SHADER);
+	normalsShader->addAttribute(Mesh::VERTICES, engine::VERTEX_ATTRIBUTE);
+	normalsShader->addAttribute(Mesh::NORMALS, engine::NORMAL_ATTRIBUTE);
+	normalsShader->addUniform(engine::MODEL_MATRIX);
+	normalsShader->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
+	normalsShader->create();
+	ShaderProgramManager::getInstance()->add("Normals", normalsShader);
+	/** /
 	ShaderProgram* textureShader = new ShaderProgram();
 	textureShader->addShader(shaderFolder + "heightMap_vs.glsl", GL_VERTEX_SHADER);
 	textureShader->addShader(shaderFolder + "heightMap_fs.glsl", GL_FRAGMENT_SHADER);
@@ -199,7 +208,7 @@ void MyApp::createShaderPrograms()
 	textureShader->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	textureShader->create();
 	ShaderProgramManager::getInstance()->add("SimpleTexture", textureShader);
-
+	/**/
 
 	ShaderProgram* quadTexture = new ShaderProgram();
 	quadTexture->addShader(shaderFolder + "textureFBO_vs.glsl", GL_VERTEX_SHADER);
@@ -215,7 +224,7 @@ void MyApp::createShaderPrograms()
 	quadTexture->setUniform2f("scaleMultiplier", Vec2(0.25f, 0.25f));
 	quadTexture->setUniform1i("screenTexture", 0);
 	ShaderProgramManager::getInstance()->add("QuadTexture", quadTexture);
-
+	/** /
 	ShaderProgram* hud = new ShaderProgram();
 	hud->addShader(shaderFolder + "hud_vs.glsl", GL_VERTEX_SHADER);
 	hud->addShader(shaderFolder + "hud_fs.glsl", GL_FRAGMENT_SHADER);
@@ -226,7 +235,7 @@ void MyApp::createShaderPrograms()
 	hud->addUniformBlock(engine::VIEW_PROJECTION_MATRIX, UBO_CAMERA);
 	hud->create();
 	ShaderProgramManager::getInstance()->add("Hud", hud);
-
+	/**/
 	// SILHOUETTE
 	ShaderProgram* silhouette = new ShaderProgram();
 	silhouette->addShader(shaderFolder + "silhouette_vs.glsl", GL_VERTEX_SHADER);
@@ -424,6 +433,8 @@ void MyApp::createSceneGraph()
 {
 	// Creates the scene that generate the depth map
 	createShadowMapScene();
+	// Creates the hud's scene
+	createHUDScene();
 	// Creates the main scene
 	createMainScene();
 }
@@ -518,7 +529,7 @@ void MyApp::createShadowMapScene()
 	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("ShadowMap");
 	terrainNode->setShaderProgram(terrainShader);
 #else
-	// Test terrain
+	// Terrain
 	SceneNode* terrainNode = scene->getRoot();
 	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
 	// Gooch Shader
@@ -528,6 +539,19 @@ void MyApp::createShadowMapScene()
 
 	TextureInfo* texInfoS = new TextureInfo(GL_TEXTURE1, 1, "snowText", TextureManager::getInstance()->get("Snow"));
 	ParticleSystem::getInstance()->text = texInfoS;
+}
+
+void MyApp::createHUDScene()
+{
+	SceneGraph* scene = new SceneGraph();
+	SceneGraphManager::getInstance()->add("HUD", scene);
+	scene->setCamera(hudCamera);
+	// Terrain
+	SceneNode* terrainNode = scene->getRoot();
+	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
+	// Gooch Shader
+	ShaderProgram* terrainShader = ShaderProgramManager::getInstance()->get("Normals");
+	terrainNode->setShaderProgram(terrainShader);
 }
 
 ///////////////////////////////////////////////////////////////////// SIMULATION
@@ -626,7 +650,7 @@ void MyApp::drawSceneGraph()
 {
 	auto width = App::getInstance()->windowWidth;
 	auto height = App::getInstance()->windowHeight;
-	// 1 - DRAW SHADOW MAP	
+	// 1 - Draw main scene	
 	TextureShadowMap& shadowMap = *(TextureShadowMap*)TextureManager::getInstance()->get("ShadowMap");
 	{
 		shadowMap.bindFramebuffer();
@@ -660,12 +684,13 @@ void MyApp::drawSceneGraph()
 	{
 		// Switch to HUD's camera
 		scene->setCamera(hudCamera);
+		SceneGraph& hudScene = *SceneGraphManager::getInstance()->get("HUD");
 		// Obtain Render Target Texture for drawing the HUD
 		RenderTargetTexture& hud = *(RenderTargetTexture*)TextureManager::getInstance()->get("RTT");
 		// Draw HUD
 		hud.clearColor(0.5f, 0.5f, 0.5f, 1.f);
 		hud.bindFramebuffer();
-		scene->draw();
+		hudScene.draw();
 		hud.unbindFramebuffer();
 		//Render HUD into the main scene
 		glClearColor(0.5f, 0.5f, 0.5f, 1.f);
@@ -673,7 +698,7 @@ void MyApp::drawSceneGraph()
 	}
 	// 5 - Draw DEBUG Shadow Map -> TODO: REMOVED OR COMMENT INNER BLOCK
 	{
-		/**/
+		/** /
 		glViewport(0, 0, (int)(width/3.f), (int)(height/3.f));
 		ShaderProgram& s_shadowMap = *ShaderProgramManager::getInstance()->get("ShadowMapDebug");
 		shadowMap.renderQuad(&s_shadowMap, "u_ShadowMap");
@@ -689,10 +714,10 @@ void MyApp::processMovement()
 {
 	GLFWwindow* win = App::getInstance()->getWindow();
 	// Capture movement input
-	int right = (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS);
-	int left = (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS);
-	int forward = (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS);
-	int backward = (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS);
+	int right = Input::isKeyPressed(GLFW_KEY_D);
+	int left = Input::isKeyPressed(GLFW_KEY_A);
+	int forward = Input::isKeyPressed(GLFW_KEY_W);
+	int backward = Input::isKeyPressed(GLFW_KEY_S);
 
 	if (right || left || forward || backward)
 	{
