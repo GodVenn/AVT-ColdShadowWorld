@@ -44,18 +44,20 @@ private:
 		// Map sizes determine "level of detail, and are unrelated to the actual size of the final terrain
 	const int mapSizeX = 500;
 	const int mapSizeY = 500;
+
 	
 	// TERRAIN
 	const float terrainMaxHeight = 15;
 	const float terrainSizeX = 100;
 	const float terrainSizeY = 100;
-	unsigned int terrainSimplicity = 5; // The higher the more simplified compared to height map
+	const unsigned int terrainSimplicity = 5; // The higher the more simplified compared to height map
+	const bool flatShading = true; // If set to false, smooth shading will be applied instead.
 
 	/// CAMERA SETUP VALUES
 	// Main Camera
 	Camera* mainCamera = nullptr;
 	CameraController* camController = nullptr;
-	const Vec3 initialEye = Vec3(0.0f, terrainMaxHeight, terrainSizeY/2);
+	const Vec3 initialEye = Vec3(0.0f, terrainMaxHeight-5.f, terrainSizeY/2);
 	const Vec3 initialCenter = Vec3(0.0f, 0.0f, -1.0f);
 	const Vec3 initialUp = Vec3(0.0f, 1.0f, 0.0f);
 	const float fovThreshold = 45.f;
@@ -92,7 +94,7 @@ private:
 	Quad2D* quad = nullptr;
 
 	// Gooch and Shadow
-	Vec3 LightPos = Vec3(40.f, 40.f, -40.f); 
+	Vec3 LightPos = Vec3(0.f, 40.f, -terrainSizeY / 2 - 10.0f);
 	float silhouetteOffset = 0.03f;
 
 	void createTextures();
@@ -387,13 +389,12 @@ void MyApp::createMeshes()
 #else
 	// Terrain
 	bool calculateNormals = true;
-	bool flatShading = false;
 	TerrainBuilder terrainBuilder = TerrainBuilder(terrainSizeX, terrainSizeY, terrainSimplicity, terrainMaxHeight, calculateNormals);
 	terrainBuilder.flatShading = flatShading;
 
 	const std::string heightMap = "Textures\\earthbump1k.jpg";
 	//terrainBuilder.setHeightMap(heightMap);
-	int seed = (int)time(NULL);
+	int seed = (int)time(NULL);//1611162130;//
 	std::cout << "[Map Generation] Seed = " << seed << std::endl;
 	terrainBuilder.generateHeightMap(mapSizeX, mapSizeY, octaves, persistence, lacunarity, seed);
 
@@ -759,7 +760,7 @@ int main(int argc, char* argv[])
 {
 	engine::App::getInstance()->setGLApp(new MyApp());
 	engine::App::getInstance()->setupOpenGL(4, 3);
-	int is_fullscreen = 0;
+	int is_fullscreen = 1;
 	int is_vsync = 0;
 	int width = 1920;
 	int height = 1080;
