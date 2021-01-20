@@ -60,21 +60,19 @@ namespace engine {
 		int indexX = 2 * j - 2;
 		int indexY = i - 1;
 		if (indexX >= 0 && indexY >= 0) {
-			triangleIndex = indexX + indexY * (dimX - 1) * 2;
+			triangleIndex = indexX + indexY * (dimX + 1);
 			normals.push_back(triangleNormals[triangleIndex]);
 		}
 
 		// Triangle lower left near
 		indexX = 2 * j - 1;
-		indexY = i - 1;
 		if (indexX >= 0 && indexY >= 0) {
-			triangleIndex = indexX + indexY * (dimX - 1);
+			triangleIndex = indexX + indexY * (dimX + 1);
 			normals.push_back(triangleNormals[triangleIndex]);
 		}
 
 		// Triangle lower right
 		indexX = 2 * j;
-		indexY = i - 1;
 		if (indexY >= 0 && indexX < dimX) {
 			triangleIndex = indexX + indexY * (dimX + 1);
 			normals.push_back(triangleNormals[triangleIndex]);
@@ -90,7 +88,6 @@ namespace engine {
 
 		// Triangle upper right near
 		indexX = 2 * j;
-		indexY = i;
 		if (indexX < dimX) {
 			triangleIndex = indexX + indexY * (dimX + 1);
 			normals.push_back(triangleNormals[triangleIndex]);
@@ -98,7 +95,6 @@ namespace engine {
 
 		// Triangle upper left
 		indexX = 2 * j - 1;
-		indexY = i;
 		if (indexX >= 0) {
 			triangleIndex = indexX + indexY * (dimX + 1);
 			normals.push_back(triangleNormals[triangleIndex]);
@@ -275,7 +271,7 @@ namespace engine {
 		std::cout << "TerrainBuilder: Building Mesh (" << dimX << " x " << dimY << ")..." << std::endl;
 		double timeStart = glfwGetTime();
 #endif
-
+		// Calculate vertex positions
 		for (int i = 0; i < dimY - 1; i++)
 		{
 			// 1 quad created per iteration here
@@ -317,7 +313,7 @@ namespace engine {
 						normals.push_back(normal2);
 					}
 					else {
-						// Triangle Normals (Reverse order for later calculation)
+						// Triangle Normals for smooth shading (Reverse order for later calculation)
 						triangleNormals.push_back(normal2);
 						triangleNormals.push_back(normal1);
 					}
@@ -349,14 +345,13 @@ namespace engine {
 #if _DEBUG 
 		std::cout << "TerrainBuilder: Vertices Created! (" << glfwGetTime() - timeStart << "s passed)" << std::endl << std::endl;
 #endif
-
+		// Calculate normals for smooth shading
 		if (this->calculateNormals && !this->flatShading)
 		{
 #if _DEBUG 
 			std::cout << "TerrainBuilder: Calculating vertex normals..." << std::endl;
 			timeStart = glfwGetTime();
 #endif
-			// Calculate normals
 			for (int i = 0; i < dimY - 1; i++)
 			{
 #if _DEBUG 
@@ -386,17 +381,17 @@ namespace engine {
 					int normX = indexX1;
 					int normY = indexY1;
 					normal;
-					if (vertexNormals.find(normX + i * normY) == vertexNormals.end())
+					if (vertexNormals.find(normX +  normY * (dimX) ) == vertexNormals.end())
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
-						vertexNormals[normX + i * normY] = normal;
+						vertexNormals[normX +  normY * (dimX) ] = normal;
 #if _DEBUG
 						calculateCount++;
 #endif
 					}
 					else
 					{
-						normal = vertexNormals[normX + i * normY];
+						normal = vertexNormals[normX +  normY * (dimX) ];
 #if _DEBUG
 						dictionaryCount++;
 #endif
@@ -407,10 +402,10 @@ namespace engine {
 					normX = indexX2;
 					normY = indexY2;
 					normal;
-					if (vertexNormals.find(normX + i * normY) == vertexNormals.end())
+					if (vertexNormals.find(normX +  normY * (dimX) ) == vertexNormals.end())
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
-						vertexNormals[normX + i * normY] = normal;
+						vertexNormals[normX +  normY * (dimX) ] = normal;
 #if _DEBUG
 						calculateCount++;
 #endif
@@ -418,7 +413,7 @@ namespace engine {
 					}
 					else
 					{
-						normal = vertexNormals[normX + i * normY];
+						normal = vertexNormals[normX +  normY * (dimX) ];
 #if _DEBUG
 						dictionaryCount++;
 #endif
@@ -428,10 +423,10 @@ namespace engine {
 
 					normX = indexX3;
 					normY = indexY3;
-					if (vertexNormals.find(normX + i * normY) == vertexNormals.end())
+					if (vertexNormals.find(normX +  normY * (dimX) ) == vertexNormals.end())
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
-						vertexNormals[normX + i * normY] = normal;
+						vertexNormals[normX +  normY * (dimX) ] = normal;
 #if _DEBUG
 						calculateCount++;
 #endif
@@ -439,7 +434,7 @@ namespace engine {
 					}
 					else
 					{
-						normal = vertexNormals[normX + i * normY];
+						normal = vertexNormals[normX +  normY * (dimX) ];
 #if _DEBUG
 						dictionaryCount++;
 #endif
@@ -450,17 +445,17 @@ namespace engine {
 					normX = indexX1;
 					normY = indexY1;
 					normal;
-					if (vertexNormals.find(normX + i * normY) == vertexNormals.end())
+					if (vertexNormals.find(normX +  normY * (dimX) ) == vertexNormals.end())
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
-						vertexNormals[normX + i * normY] = normal;
+						vertexNormals[normX +  normY * (dimX) ] = normal;
 #if _DEBUG
 						calculateCount++;
 #endif
 					}
 					else
 					{
-						normal = vertexNormals[normX + i * normY];
+						normal = vertexNormals[normX +  normY * (dimX) ];
 #if _DEBUG
 						dictionaryCount++;
 #endif
@@ -471,17 +466,17 @@ namespace engine {
 					normX = indexX3;
 					normY = indexY3;
 					normal;
-					if (vertexNormals.find(normX + i * normY) == vertexNormals.end())
+					if (vertexNormals.find(normX +  normY * (dimX) ) == vertexNormals.end())
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
-						vertexNormals[normX + i * normY] = normal;
+						vertexNormals[normX +  normY * (dimX) ] = normal;
 #if _DEBUG
 						calculateCount++;
 #endif
 					}
 					else
 					{
-						normal = vertexNormals[normX + i * normY];
+						normal = vertexNormals[normX +  normY * (dimX) ];
 #if _DEBUG
 						dictionaryCount++;
 #endif
@@ -491,17 +486,17 @@ namespace engine {
 					normX = indexX4;
 					normY = indexY4;
 					normal;
-					if (vertexNormals.find(normX + i * normY) == vertexNormals.end())
+					if (vertexNormals.find(normX +  normY * (dimX) ) == vertexNormals.end())
 					{
 						normal = calculateVertexNormal(normY, normX, dimX, dimY, triangleNormals);
-						vertexNormals[normX + i * normY] = normal;
+						vertexNormals[normX +  normY * (dimX) ] = normal;
 #if _DEBUG
 						calculateCount++;
 #endif
 					}
 					else
 					{
-						normal = vertexNormals[normX + i * normY];
+						normal = vertexNormals[normX +  normY * (dimX) ];
 #if _DEBUG
 						dictionaryCount++;
 #endif

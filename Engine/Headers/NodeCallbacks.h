@@ -39,4 +39,23 @@ namespace engine
 		}
 
 	};
+
+
+	/////////////////////////////////////////////////////////////////////// WireframeCallback
+	class WireframeCallback : public ISceneNodeCallBack
+	{
+	public:
+		WireframeCallback() {};
+		~WireframeCallback() {};
+
+		virtual void beforeDraw(SceneNode* node) override
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		virtual void afterDraw(SceneNode* node) override 
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
+	};
 }

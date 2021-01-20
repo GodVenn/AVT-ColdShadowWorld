@@ -41,7 +41,7 @@ private:
 	const float persistence = 0.6f; // in [0, 1]
 	const float lacunarity = 2.2f;	// >=1
 	const int octaves = 6;			// >=1
-		// Sizes determine "level of detail, and are unrelated to the actual size of the final terrain
+		// Map sizes determine "level of detail, and are unrelated to the actual size of the final terrain
 	const int mapSizeX = 500;
 	const int mapSizeY = 500;
 	
@@ -387,7 +387,7 @@ void MyApp::createMeshes()
 #else
 	// Terrain
 	bool calculateNormals = true;
-	bool flatShading = true;
+	bool flatShading = false;
 	TerrainBuilder terrainBuilder = TerrainBuilder(terrainSizeX, terrainSizeY, terrainSimplicity, terrainMaxHeight, calculateNormals);
 	terrainBuilder.flatShading = flatShading;
 
@@ -478,7 +478,7 @@ void MyApp::createMainScene()
 	n_Silhouette->setShaderProgram(s_Silhouette);
 	n_Silhouette->setCallback(backModeCB);
 #else
-	// Test terrain
+	// Terrain
 	SceneNode* terrainNode = scene->getRoot();
 	terrainNode->setMesh(MeshManager::getInstance()->get("Terrain"));
 	// Gooch Shader
@@ -493,6 +493,19 @@ void MyApp::createMainScene()
 	TextureInfo* texInfoShadow = new TextureInfo(GL_TEXTURE0, 0, "u_ShadowMap",
 		(TextureShadowMap*)(TextureManager::getInstance()->get("ShadowMap")), 0);
 	terrainNode->addTextureInfo(texInfoShadow);
+	
+	////Wireframe testing
+	//// Terrain
+	//SceneNode* terrainNodeTest = scene->createNode();
+	//terrainNodeTest->setMatrix(MatFactory::createTranslationMat4(Vec3(0, 0.1f, 0)));
+	//terrainNodeTest->setMesh(MeshManager::getInstance()->get("Terrain"));
+	//// Gooch Shader
+	//terrainNodeTest->setShaderProgram(ShaderProgramManager::getInstance()->get("Normals"));
+	//// Set Shadows Texture
+	//terrainNodeTest->setCallback(new WireframeCallback());
+	////
+	
+
 
 	// SILHOUETTE 
 	backModeCB = new BackMode();
@@ -746,7 +759,7 @@ int main(int argc, char* argv[])
 {
 	engine::App::getInstance()->setGLApp(new MyApp());
 	engine::App::getInstance()->setupOpenGL(4, 3);
-	int is_fullscreen = 1;
+	int is_fullscreen = 0;
 	int is_vsync = 0;
 	int width = 1920;
 	int height = 1080;
