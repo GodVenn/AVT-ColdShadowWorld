@@ -1,5 +1,5 @@
 # AVT-ColdShadowWorld
-Our goal will be to create a nice-looking world with procedurally generated terrain, gucci shading, snow and shadows. We want to explore the world using some flying device which has a HUD.
+Our goal was to create a nice-looking world with procedurally generated terrain, gucci shading, snow and shadows. We want to explore the world using some flying device which has a HUD.
 
 ### Youtube Video
 
